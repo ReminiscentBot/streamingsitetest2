@@ -44,10 +44,8 @@ export async function POST(req: NextRequest) {
     const ban = await prisma.ban.create({
       data: {
         userId,
-        bannedBy: user.id,
         reason,
-        expiresAt,
-        createdAt: new Date()
+        bannedUntil: expiresAt
       }
     })
 
