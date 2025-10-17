@@ -34,7 +34,7 @@ export default function PresenceHeartbeat() {
         await fetch('/api/presence', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ currentPage: getPageName(pathname) })
+          body: JSON.stringify({ currentPage: getPageName(pathname || '') })
         })
       } catch (error) {
         console.error('Failed to send presence heartbeat:', error)
