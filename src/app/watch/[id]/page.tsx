@@ -261,8 +261,8 @@ export default function WatchPage({ params }: { params: { id: string } }) {
               const fallbackOrder = ['3','4','1','2']
               const currentIndex = fallbackOrder.indexOf(apiVersion)
               if (currentIndex < fallbackOrder.length - 1) {
-                const nextApi = fallbackOrder[currentIndex + 1]
-                setApiVersion(nextApi)
+              const nextApi = fallbackOrder[currentIndex + 1] as '1' | '2' | '3' | '4'
+              setApiVersion(nextApi)
               } else {
                 setAllApisFailed(true)
               }
