@@ -15,6 +15,7 @@ export default function WatchPage({ params }: { params: { id: string } }) {
   const [attempted, setAttempted] = useState<Record<string, boolean>>({})   // APIs we've already tried this session
   const [autoMode, setAutoMode] = useState(true)
   const [userInteracted, setUserInteracted] = useState(false)
+  const [allApisFailed, setAllApisFailed] = useState(false)
   const isTv = type === 'tv'
   const keyBase = `${params.id}-${isTv ? 'tv' : 'movie'}`
   const [originalLang, setOriginalLang] = useState<string>('')
@@ -222,16 +223,54 @@ export default function WatchPage({ params }: { params: { id: string } }) {
           )}
         </div>
 
-        <iframe
-          src={src}
-          allowFullScreen
-          referrerPolicy="no-referrer"
-          loading="lazy"
-          className="w-full h-[60vh] rounded-lg border border-neutral-800"
-          onLoad={() => { /* reset interaction lock on new src; wait for MEDIA_DATA */ setUserInteracted(false) }}
-          onClick={() => setUserInteracted(true)}
-          onMouseDown={() => setUserInteracted(true)}
-        />
+        {allApisFailed ? (
+          <div className="w-full h-[60vh] rounded-lg border border-neutral-800 bg-neutral-900 flex items-center justify-center flex-col space-y-4">
+            <div className="text-red-400 text-xl">⚠️</div>
+            <div className="text-white text-lg font-semibold">Stream Not Available</div>
+            <div className="text-neutral-400 text-center max-w-md">
+              All streaming sources are currently unavailable. This might be due to:
+              <ul className="mt-2 text-sm space-y-1">
+                <li>• Geographic restrictions</li>
+                <li>• Network connectivity issues</li>
+                <li>• Server maintenance</li>
+              </ul>
+            </div>
+            <button 
+              onClick={() => {
+                setAllApisFailed(false)
+                setApiVersion('3')
+                setAttempted({})
+                setAutoTried({})
+              }}
+              className="px-4 py-2 bg-brand-600 hover:bg-brand-700 rounded text-white"
+            >
+              Try Again
+            </button>
+          </div>
+        ) : (
+          <iframe
+            src={src}
+            allowFullScreen
+            referrerPolicy="no-referrer"
+            loading="lazy"
+            className="w-full h-[60vh] rounded-lg border border-neutral-800"
+            onLoad={() => { /* reset interaction lock on new src; wait for MEDIA_DATA */ setUserInteracted(false) }}
+            onError={() => {
+              console.log('Iframe failed to load, trying next API...')
+              // Try next API in fallback order
+              const fallbackOrder = ['3','4','1','2']
+              const currentIndex = fallbackOrder.indexOf(apiVersion)
+              if (currentIndex < fallbackOrder.length - 1) {
+                const nextApi = fallbackOrder[currentIndex + 1]
+                setApiVersion(nextApi)
+              } else {
+                setAllApisFailed(true)
+              }
+            }}
+            onClick={() => setUserInteracted(true)}
+            onMouseDown={() => setUserInteracted(true)}
+          />
+        )}
       </div>
       <Recommendations id={params.id} type={isTv ? 'tv' : 'movie'} />
     </main>
