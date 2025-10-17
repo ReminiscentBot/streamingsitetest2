@@ -101,9 +101,10 @@ export async function DELETE(req: NextRequest) {
       return NextResponse.json({ error: 'Comment ID required' }, { status: 400 })
     }
 
-    // Get the current user
+    // Get the current user with roles
     const user = await prisma.user.findUnique({
-      where: { email: session.user.email }
+      where: { email: session.user.email },
+      include: { roles: true }
     })
 
     if (!user) {
