@@ -339,7 +339,7 @@ export default function AdminReports() {
                       <button
                         onClick={() => {
                           const reason = prompt('Warning reason:')
-                          if (reason) warnUser(report.comment.author.uid, reason)
+                          if (reason) warnUser(report.comment.author.uid.toString(), reason)
                         }}
                         className="px-3 py-1 bg-yellow-600 hover:bg-yellow-700 rounded text-sm transition-colors"
                       >
@@ -351,7 +351,7 @@ export default function AdminReports() {
                           const duration = prompt('Ban duration in days (leave empty for permanent):')
                           if (reason) {
                             banUser(
-                              report.comment.author.uid, 
+                              report.comment.author.uid.toString(), 
                               reason, 
                               duration ? parseInt(duration) * 24 * 60 * 60 * 1000 : undefined
                             )
