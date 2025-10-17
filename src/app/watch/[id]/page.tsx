@@ -16,6 +16,7 @@ export default function WatchPage({ params }: { params: { id: string } }) {
   const [autoMode, setAutoMode] = useState(true)
   const [userInteracted, setUserInteracted] = useState(false)
   const [allApisFailed, setAllApisFailed] = useState(false)
+  const [sslError, setSslError] = useState(false)
   const isTv = type === 'tv'
   const keyBase = `${params.id}-${isTv ? 'tv' : 'movie'}`
   const [originalLang, setOriginalLang] = useState<string>('')
@@ -226,18 +227,46 @@ export default function WatchPage({ params }: { params: { id: string } }) {
         {allApisFailed ? (
           <div className="w-full h-[60vh] rounded-lg border border-neutral-800 bg-neutral-900 flex items-center justify-center flex-col space-y-4">
             <div className="text-red-400 text-xl">⚠️</div>
-            <div className="text-white text-lg font-semibold">Stream Not Available</div>
+            <div className="text-white text-lg font-semibold">
+              {sslError ? 'SSL Security Error' : 'Stream Not Available'}
+            </div>
             <div className="text-neutral-400 text-center max-w-md">
-              All streaming sources are currently unavailable. This might be due to:
-              <ul className="mt-2 text-sm space-y-1">
-                <li>• Geographic restrictions</li>
-                <li>• Network connectivity issues</li>
-                <li>• Server maintenance</li>
-              </ul>
+              {sslError ? (
+                <>
+                  <div className="text-red-300 mb-3">
+                    ERR_SSL_PROTOCOL_ERROR detected
+                  </div>
+                  <div className="text-sm">
+                    This is a browser security issue. Try:
+                  </div>
+                  <ul className="mt-2 text-sm space-y-1">
+                    <li>• Use incognito/private mode</li>
+                    <li>• Try a different browser</li>
+                    <li>• Disable browser extensions</li>
+                    <li>• Use mobile data instead of WiFi</li>
+                    <li>• Check antivirus/firewall settings</li>
+                  </ul>
+                </>
+              ) : (
+                <>
+                  All streaming sources are currently unavailable. This might be due to:
+                  <ul className="mt-2 text-sm space-y-1">
+                    <li>• Geographic restrictions</li>
+                    <li>• Network connectivity issues</li>
+                    <li>• SSL/Certificate errors</li>
+                    <li>• Browser security settings</li>
+                    <li>• Corporate/school network blocking</li>
+                  </ul>
+                  <div className="mt-3 text-xs text-neutral-500">
+                    Try: Different browser, incognito mode, or mobile data
+                  </div>
+                </>
+              )}
             </div>
             <button 
               onClick={() => {
                 setAllApisFailed(false)
+                setSslError(false)
                 setApiVersion('3')
                 setAttempted({})
                 setAutoTried({})
@@ -257,12 +286,16 @@ export default function WatchPage({ params }: { params: { id: string } }) {
             onLoad={() => { /* reset interaction lock on new src; wait for MEDIA_DATA */ setUserInteracted(false) }}
             onError={() => {
               console.log('Iframe failed to load, trying next API...')
+              // Check if it's an SSL error
+              if (window.location.protocol === 'https:' && src.includes('vidsrc')) {
+                setSslError(true)
+              }
               // Try next API in fallback order
               const fallbackOrder = ['3','4','1','2']
               const currentIndex = fallbackOrder.indexOf(apiVersion)
               if (currentIndex < fallbackOrder.length - 1) {
-              const nextApi = fallbackOrder[currentIndex + 1] as '1' | '2' | '3' | '4'
-              setApiVersion(nextApi)
+                const nextApi = fallbackOrder[currentIndex + 1] as '1' | '2' | '3' | '4'
+                setApiVersion(nextApi)
               } else {
                 setAllApisFailed(true)
               }
