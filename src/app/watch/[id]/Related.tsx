@@ -40,7 +40,7 @@ export default function Related({ id, type }: { id: string; type: 'movie' | 'tv'
 
   return (
     <div className="bg-neutral-900/70 border border-neutral-800 rounded-lg p-4">
-      <h3 className="text-white font-semibold mb-3">> RELATED</h3>
+      <h3 className="text-white font-semibold mb-3">&gt; RELATED</h3>
       <div className="space-y-2">
         {items.slice(0, 5).map((item: any) => {
           const isTv = item.media_type === 'tv' || type === 'tv'
