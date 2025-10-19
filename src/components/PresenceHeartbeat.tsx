@@ -9,7 +9,13 @@ export default function PresenceHeartbeat() {
   const pathname = usePathname()
 
   useEffect(() => {
-    if (status !== 'authenticated' || !session) return
+    // Only run if user is authenticated
+    if (status !== 'authenticated' || !session) {
+      console.log('PresenceHeartbeat: User not authenticated, skipping heartbeat')
+      return
+    }
+
+    console.log('PresenceHeartbeat: User authenticated, starting heartbeat')
 
     // Get a friendly page name from the pathname
     const getPageInfo = (path: string) => {
@@ -39,11 +45,17 @@ export default function PresenceHeartbeat() {
     const sendHeartbeat = async () => {
       try {
         const pageInfo = getPageInfo(pathname || '')
-        await fetch('/api/presence', {
+        const response = await fetch('/api/presence', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(pageInfo)
         })
+        
+        if (!response.ok) {
+          console.log('Presence heartbeat failed:', response.status, response.statusText)
+        } else {
+          console.log('Presence heartbeat sent successfully')
+        }
       } catch (error) {
         console.error('Failed to send presence heartbeat:', error)
       }
