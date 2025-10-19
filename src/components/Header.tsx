@@ -65,47 +65,14 @@ export default function Header() {
   return (
     <header className="sticky top-0 z-30 bg-neutral-900/70 backdrop-blur border-b border-neutral-800">
       <div className="max-w-6xl mx-auto p-4 flex items-center justify-between flex-wrap gap-2 min-h-[80px]">
-        <Link href="/" className="group relative flex items-center gap-3 px-4 py-3 rounded-xl overflow-hidden">
-          {/* Advanced background effects */}
-          <div className="absolute inset-0 bg-gradient-to-r from-brand-500/20 via-purple-500/20 to-pink-500/20 opacity-0 group-hover:opacity-100 transition-all duration-700 blur-xl"></div>
-          <div className="absolute inset-0 bg-gradient-to-r from-brand-400/10 via-purple-400/10 to-pink-400/10 opacity-0 group-hover:opacity-100 transition-all duration-500"></div>
-          
-          {/* Animated border */}
-          <div className="absolute inset-0 rounded-xl border-2 border-transparent bg-gradient-to-r from-brand-400 via-purple-400 to-pink-400 bg-clip-border opacity-0 group-hover:opacity-100 transition-all duration-500">
-            <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-brand-400 via-purple-400 to-pink-400 animate-spin-slow"></div>
-          </div>
-          
-          {/* Icon with advanced effects */}
-          <div className="relative z-10">
-            <FontAwesomeIcon 
-              icon={faClapperboard} 
-              className="text-2xl text-brand-400 group-hover:text-white transition-all duration-500 group-hover:scale-125 group-hover:rotate-180 group-hover:drop-shadow-[0_0_30px_rgba(255,255,255,0.8)] group-hover:animate-bounce" 
-            />
-            {/* Rotating glow ring around icon */}
-            <div className="absolute inset-0 w-8 h-8 border-2 border-brand-400/30 rounded-full opacity-0 group-hover:opacity-100 group-hover:animate-spin transition-all duration-500"></div>
-            <div className="absolute inset-0 w-6 h-6 border border-purple-400/50 rounded-full opacity-0 group-hover:opacity-100 group-hover:animate-reverse-spin transition-all duration-700"></div>
-          </div>
-          
-              {/* Advanced text with multiple effects - Cross-browser compatible */}
-              <span className="relative z-10 text-2xl font-black text-brand-400 group-hover:text-white transition-all duration-700 group-hover:scale-110 group-hover:animate-pulse">
-                <span className="relative">
-                  Reminiscent
-                  {/* Animated underline */}
-                  <div className="absolute -bottom-1 left-0 w-0 h-1 bg-gradient-to-r from-brand-400 to-pink-400 group-hover:w-full transition-all duration-700"></div>
-                  {/* Floating particles effect */}
-                  <div className="absolute -top-2 -right-2 w-2 h-2 bg-brand-400 rounded-full opacity-0 group-hover:opacity-100 group-hover:animate-ping"></div>
-                  <div className="absolute -bottom-2 -left-2 w-1 h-1 bg-purple-400 rounded-full opacity-0 group-hover:opacity-100 group-hover:animate-ping group-hover:animation-delay-200"></div>
-                  {/* Glow effect for better visibility */}
-                  <div className="absolute inset-0 text-brand-400 group-hover:text-white group-hover:drop-shadow-[0_0_10px_rgba(139,92,246,0.5)] transition-all duration-700"></div>
-                </span>
-              </span>
-          
-          {/* Advanced particle effects */}
-          <div className="absolute inset-0 overflow-hidden rounded-xl">
-            <div className="absolute top-2 left-4 w-1 h-1 bg-white rounded-full opacity-0 group-hover:opacity-100 group-hover:animate-float-up"></div>
-            <div className="absolute top-4 right-6 w-1 h-1 bg-brand-400 rounded-full opacity-0 group-hover:opacity-100 group-hover:animate-float-up group-hover:animation-delay-300"></div>
-            <div className="absolute bottom-3 left-8 w-1 h-1 bg-purple-400 rounded-full opacity-0 group-hover:opacity-100 group-hover:animate-float-up group-hover:animation-delay-500"></div>
-          </div>
+        <Link href="/" className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-neutral-800/50 transition-colors">
+          <FontAwesomeIcon 
+            icon={faClapperboard} 
+            className="text-2xl text-brand-400" 
+          />
+          <span className="text-2xl font-bold text-brand-400">
+            Reminiscent
+          </span>
         </Link>
         
         {/* Search Bar - Hidden on home, movies, and tv pages */}
@@ -131,9 +98,9 @@ export default function Header() {
         <nav className="flex items-center gap-2 flex-shrink-0 min-w-0">
           <Link 
             href="/" 
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-200 ${
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
               pathname === '/' 
-                ? 'bg-brand-600/20 text-brand-400 border border-brand-500/30' 
+                ? 'bg-brand-600 text-white' 
                 : 'text-neutral-400 hover:text-white hover:bg-neutral-800/50'
             }`}
           >
@@ -143,9 +110,9 @@ export default function Header() {
           
           <Link 
             href="/movies" 
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-200 ${
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
               pathname === '/movies' 
-                ? 'bg-brand-600/20 text-brand-400 border border-brand-500/30' 
+                ? 'bg-brand-600 text-white' 
                 : 'text-neutral-400 hover:text-white hover:bg-neutral-800/50'
             }`}
           >
@@ -155,9 +122,9 @@ export default function Header() {
           
           <Link 
             href="/tv" 
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-200 ${
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
               pathname === '/tv' 
-                ? 'bg-brand-600/20 text-brand-400 border border-brand-500/30' 
+                ? 'bg-brand-600 text-white' 
                 : 'text-neutral-400 hover:text-white hover:bg-neutral-800/50'
             }`}
           >
@@ -165,12 +132,11 @@ export default function Header() {
             <span className="hidden sm:inline">TV Shows</span>
           </Link>
           
-          
           <Link 
             href="/members" 
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-200 ${
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
               pathname === '/members' 
-                ? 'bg-brand-600/20 text-brand-400 border border-brand-500/30' 
+                ? 'bg-brand-600 text-white' 
                 : 'text-neutral-400 hover:text-white hover:bg-neutral-800/50'
             }`}
           >
