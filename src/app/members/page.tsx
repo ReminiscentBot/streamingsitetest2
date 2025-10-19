@@ -9,24 +9,50 @@ const prisma = new PrismaClient()
 
 async function getMembersStats() {
   try {
-    // Get most liked movies/shows (placeholder - we'll implement rating system)
-    const mostLikedMovies = await prisma.user.findMany({
-      take: 5,
-      orderBy: { createdAt: 'asc' }, // Placeholder until we have ratings
-      select: {
-        id: true,
-        name: true,
-        image: true,
-        uid: true,
-        profile: {
-          select: {
-            lastActiveAt: true,
-            lastWatchingTitle: true,
-            lastWatchingPoster: true,
-          }
+    // Get most rated movies/shows based on rating count
+    const mostRatedMovies = await prisma.rating.groupBy({
+      by: ['tmdbId', 'type'],
+      _count: {
+        tmdbId: true
+      },
+      orderBy: {
+        _count: {
+          tmdbId: 'desc'
         }
-      }
+      },
+      take: 5
     })
+
+    // Get movie/show details for the most rated items
+    const mostRatedDetails = await Promise.all(
+      mostRatedMovies.map(async (item) => {
+        try {
+          // Fetch details from TMDB API
+          const response = await fetch(`${process.env.NEXT_PUBLIC_TMDB_BASE_URL}/${item.type}/${item.tmdbId}?api_key=${process.env.TMDB_API_KEY}`)
+          if (response.ok) {
+            const data = await response.json()
+            return {
+              tmdbId: item.tmdbId,
+              type: item.type,
+              ratingCount: item._count.tmdbId,
+              title: data.title || data.name,
+              poster: data.poster_path ? `https://image.tmdb.org/t/p/w200${data.poster_path}` : null
+            }
+          }
+        } catch (error) {
+          console.error(`Failed to fetch details for ${item.type} ${item.tmdbId}:`, error)
+        }
+        
+        // Fallback to placeholder data
+        return {
+          tmdbId: item.tmdbId,
+          type: item.type,
+          ratingCount: item._count.tmdbId,
+          title: `${item.type === 'movie' ? 'Movie' : 'TV Show'} ${item.tmdbId}`,
+          poster: null
+        }
+      })
+    )
 
     // Get most time online (users with most recent activity)
     const mostActiveUsers = await prisma.user.findMany({
@@ -120,7 +146,7 @@ async function getMembersStats() {
     }))
 
     return {
-      mostLikedMovies,
+      mostRatedDetails,
       mostActiveUsers,
       staffMembers,
       onlineUsers
@@ -128,7 +154,7 @@ async function getMembersStats() {
   } catch (error) {
     console.error('Error fetching members stats:', error)
     return {
-      mostLikedMovies: [],
+      mostRatedDetails: [],
       mostActiveUsers: [],
       staffMembers: [],
       onlineUsers: []
@@ -196,37 +222,39 @@ export default async function MembersPage() {
 
         {/* Stats Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          {/* Most Liked Movies/Shows */}
+          {/* Most Rated Shows and Movies */}
           <div className="bg-neutral-900/50 backdrop-blur-sm rounded-xl border border-neutral-700/50 p-6">
             <h3 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
               <span className="text-brand-400">⭐</span>
-              Most Liked Movies/Shows
+              Most Rated Shows and Movies
             </h3>
             <div className="space-y-3">
-              {stats.mostLikedMovies.map((user, index) => (
-                <Link key={user.id} href={`/members/${user.uid}`} className="flex items-center gap-3 p-3 rounded-lg hover:bg-neutral-800/50 transition-colors">
+              {stats.mostRatedDetails.map((item, index) => (
+                <div key={`${item.tmdbId}-${item.type}`} className="flex items-center gap-3 p-3 rounded-lg hover:bg-neutral-800/50 transition-colors">
                   <div className="w-8 h-8 bg-brand-600 rounded-full flex items-center justify-center text-white font-bold text-sm">
                     {index + 1}
                   </div>
-                  <div className="relative w-10 h-10">
-                    <Image
-                      src={user.image || '/placeholder.png'}
-                      alt={user.name || 'User'}
-                      fill
-                      className="object-cover rounded-full"
-                    />
+                  <div className="relative w-10 h-14 bg-neutral-700 rounded flex items-center justify-center">
+                    {item.poster ? (
+                      <Image
+                        src={item.poster}
+                        alt={item.title}
+                        fill
+                        className="object-cover rounded"
+                      />
+                    ) : (
+                      <span className="text-neutral-400 text-xs">📺</span>
+                    )}
                   </div>
                   <div className="flex-1">
-                    <div className="text-white font-medium">{user.name}</div>
-                    <div className="text-sm text-neutral-400">UID: {user.uid}</div>
+                    <div className="text-white font-medium">{item.title}</div>
+                    <div className="text-sm text-neutral-400 capitalize">{item.type}</div>
                   </div>
-                  {user.profile?.lastWatchingTitle && (
-                    <div className="text-right">
-                      <div className="text-xs text-neutral-400">Watching</div>
-                      <div className="text-sm text-white truncate max-w-24">{user.profile.lastWatchingTitle}</div>
-                    </div>
-                  )}
-                </Link>
+                  <div className="text-right">
+                    <div className="text-xs text-neutral-400">Ratings</div>
+                    <div className="text-sm text-white font-bold">{item.ratingCount}</div>
+                  </div>
+                </div>
               ))}
             </div>
           </div>

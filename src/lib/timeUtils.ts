@@ -6,9 +6,9 @@ export function formatLastActive(lastActiveAt: string | Date): string {
   const diffHours = Math.floor(diffMs / (1000 * 60 * 60))
   const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
 
-  // If less than 1 minute, show as "now"
+  // If less than 1 minute, show as "Now"
   if (diffMinutes < 1) {
-    return 'now'
+    return 'Now'
   }
   
   // If less than 1 hour, show in minutes
