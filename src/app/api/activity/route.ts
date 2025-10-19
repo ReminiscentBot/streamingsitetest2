@@ -37,6 +37,7 @@ export async function POST(request: NextRequest) {
       where: { userId: user.id },
       update: {
         lastActiveAt: new Date(),
+        lastWatchingId: tmdbId || null,
         lastWatchingTitle: title,
         lastWatchingType: type,
         lastWatchingSeason: season || null,
@@ -47,6 +48,7 @@ export async function POST(request: NextRequest) {
       create: {
         userId: user.id,
         lastActiveAt: new Date(),
+        lastWatchingId: tmdbId || null,
         lastWatchingTitle: title,
         lastWatchingType: type,
         lastWatchingSeason: season || null,

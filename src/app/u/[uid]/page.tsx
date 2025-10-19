@@ -252,7 +252,7 @@ export default function UserProfile({ params }: { params: { uid: string } }) {
               <span className="text-brand-400">🎬</span>
               Last Watching
             </h3>
-            {data?.profile?.lastWatchingId ? (
+            {data?.profile?.lastWatchingTitle ? (
               <div className="flex items-center gap-3">
                 <div className="w-12 h-16 bg-neutral-800 rounded-lg border border-neutral-700 flex items-center justify-center overflow-hidden">
                   <Image 
