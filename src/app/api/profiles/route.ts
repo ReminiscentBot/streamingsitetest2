@@ -65,7 +65,25 @@ export async function GET(req: NextRequest) {
     }
   }
   
-  const views = profile ? await prisma.profileView.findMany({ where: { profileId: profile.id }, orderBy: { createdAt: 'desc' }, take: 50 }) : []
+  const views = profile ? await prisma.profileView.findMany({ 
+    where: { profileId: profile.id }, 
+    orderBy: { createdAt: 'desc' }, 
+    take: 50 
+  }) : []
+
+  // Manually fetch viewer information for each view
+  const viewsWithViewers = await Promise.all(
+    views.map(async (view) => {
+      if (view.viewerId) {
+        const viewer = await prisma.user.findUnique({
+          where: { id: view.viewerId },
+          select: { uid: true, name: true, image: true }
+        })
+        return { ...view, viewer }
+      }
+      return { ...view, viewer: null }
+    })
+  )
   const comments = profile ? await prisma.profileComment.findMany({ 
     where: { profileId: profile.id }, 
     include: {
@@ -104,7 +122,7 @@ export async function GET(req: NextRequest) {
     profile, 
     presence,
     viewedProfile,
-    views, 
+    views: viewsWithViewers, 
     comments 
   })
 }

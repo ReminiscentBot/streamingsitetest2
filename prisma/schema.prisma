@@ -9,7 +9,7 @@ datasource db {
 
 model User {
   id               String   @id @default(cuid())
-  uid              Int      @unique @default(autoincrement())
+  uid              Int      @unique
   email            String?  @unique
   name             String?
   image            String?
@@ -25,6 +25,7 @@ model User {
   reports          Report[]
   commentLikes     CommentLike[]
   presence         Presence?
+  profileViews     ProfileView[]
 }
 
 model Watchlist {
@@ -75,6 +76,7 @@ model ProfileView {
   profile   Profile  @relation(fields: [profileId], references: [id])
   profileId String
   viewerId  String?
+  viewer    User?    @relation(fields: [viewerId], references: [id])
   createdAt DateTime @default(now())
   @@index([profileId, createdAt])
 }

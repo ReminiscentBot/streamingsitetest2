@@ -292,7 +292,16 @@ export default function UserProfile({ params }: { params: { uid: string } }) {
             <div className="space-y-1">
               {data?.views?.slice(0, 5).map((v: any) => (
                 <div key={v.id} className="flex justify-between items-center py-1 border-b border-neutral-800/50 last:border-b-0">
-                  <span className="text-xs text-neutral-300">{v.viewerId || 'Anonymous'}</span>
+                  {v.viewer ? (
+                    <a 
+                      href={`/u/${v.viewer.uid}`}
+                      className="text-xs text-neutral-300 hover:text-brand-400 transition-colors cursor-pointer"
+                    >
+                      {v.viewer.name || `User ${v.viewer.uid}`}
+                    </a>
+                  ) : (
+                    <span className="text-xs text-neutral-300">Anonymous</span>
+                  )}
                   <span className="text-xs text-neutral-500">{new Date(v.createdAt).toLocaleDateString()}</span>
                 </div>
               ))}

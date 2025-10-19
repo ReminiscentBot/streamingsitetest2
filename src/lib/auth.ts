@@ -4,6 +4,15 @@ import { PrismaClient } from '@prisma/client'
 
 const prisma = new PrismaClient()
 
+async function getNextUid(): Promise<number> {
+  const lastUser = await prisma.user.findFirst({
+    orderBy: { uid: 'desc' },
+    select: { uid: true }
+  })
+  
+  return (lastUser?.uid || 0) + 1
+}
+
 export const authOptions: NextAuthOptions = {
   providers: [
     DiscordProvider({
@@ -55,6 +64,7 @@ export const authOptions: NextAuthOptions = {
             image: user.image || profile?.avatar_url || undefined,
             discordId: account?.providerAccountId,
             banner: discordBanner,
+            uid: await getNextUid(),
           },
         });
 

@@ -12,6 +12,11 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Missing required parameters' }, { status: 400 })
     }
 
+    // Validate that id is numeric for TMDB API
+    if (!/^\d+$/.test(id)) {
+      return NextResponse.json({ error: 'Invalid ID format' }, { status: 400 })
+    }
+
     const response = await fetch(
       `${TMDB_BASE_URL}/tv/${id}?api_key=${TMDB_API_KEY}&language=en-US`
     )

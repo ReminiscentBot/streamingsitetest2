@@ -1,5 +1,4 @@
 import SearchBar from '@/components/SearchBar'
-import ContinueWatching from '@/components/ContinueWatching'
 import SectionGrid from '@/components/SectionGrid'
 
 async function fetchJson(path: string) {
@@ -32,9 +31,6 @@ export default async function Home() {
             <SearchBar />
           </div>
         </div>
-
-        {/* Continue Watching */}
-        <ContinueWatching />
 
         {/* Content Sections */}
         <div className="space-y-12">

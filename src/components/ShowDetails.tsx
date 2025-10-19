@@ -173,7 +173,7 @@ export default function ShowDetails({ tmdbId, type, currentEpisode, currentSeaso
           <div className="flex items-center gap-4 text-sm text-neutral-400">
             <span className="flex items-center gap-1">
               <FontAwesomeIcon icon={faStar} className="text-yellow-400" />
-              {showData.vote_average.toFixed(1)} ({showData.vote_count.toLocaleString()})
+              {showData.vote_average?.toFixed(1) || 'N/A'} ({showData.vote_count?.toLocaleString() || 0})
             </span>
             {websiteRating && websiteRating.count > 0 && (
               <span className="flex items-center gap-1">
@@ -203,14 +203,14 @@ export default function ShowDetails({ tmdbId, type, currentEpisode, currentSeaso
 
       {/* Genres */}
       <div className="flex flex-wrap gap-2 mb-4">
-        {showData.genres.map((genre) => (
+        {showData.genres?.map((genre) => (
           <span
             key={genre.id}
             className="px-3 py-1 bg-neutral-800 text-white text-sm rounded-full hover:bg-neutral-700 cursor-pointer transition-colors"
           >
             {genre.name}
           </span>
-        ))}
+        )) || <span className="text-neutral-400 text-sm">No genres available</span>}
       </div>
 
       {/* Poster and Overview */}
@@ -302,7 +302,7 @@ export default function ShowDetails({ tmdbId, type, currentEpisode, currentSeaso
               <div className="flex justify-between">
                 <span className="text-neutral-400">Country:</span>
                 <span className="text-white">
-                  {showData.production_countries[0]?.iso_3166_1 || 'N/A'}
+                  {showData.production_countries?.[0]?.iso_3166_1 || 'N/A'}
                 </span>
               </div>
               <div className="flex justify-between">
@@ -312,7 +312,7 @@ export default function ShowDetails({ tmdbId, type, currentEpisode, currentSeaso
               <div className="flex justify-between">
                 <span className="text-neutral-400">Studios:</span>
                 <span className="text-white">
-                  {showData.production_companies[0]?.name || 'N/A'}
+                  {showData.production_companies?.[0]?.name || 'N/A'}
                 </span>
               </div>
             </div>
