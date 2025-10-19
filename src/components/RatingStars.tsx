@@ -19,13 +19,21 @@ export default function RatingStars({
   totalRatings = 0,
   onRatingChange 
 }: RatingStarsProps) {
-  const [currentRating, setCurrentRating] = useState(userRating || 0)
+  const [currentRating, setCurrentRating] = useState(0)
   const [hoverRating, setHoverRating] = useState(0)
   const [isLoading, setIsLoading] = useState(false)
 
+  // Load rating from localStorage on mount
   useEffect(() => {
-    setCurrentRating(userRating || 0)
-  }, [userRating])
+    if (typeof window !== 'undefined') {
+      const savedRating = localStorage.getItem(`rating-${tmdbId}-${type}`)
+      if (savedRating) {
+        setCurrentRating(parseInt(savedRating))
+      } else if (userRating) {
+        setCurrentRating(userRating)
+      }
+    }
+  }, [tmdbId, type, userRating])
 
   const handleRating = async (rating: number) => {
     if (isLoading) return
@@ -47,6 +55,10 @@ export default function RatingStars({
       if (response.ok) {
         const data = await response.json()
         setCurrentRating(rating)
+        // Save rating to localStorage
+        if (typeof window !== 'undefined') {
+          localStorage.setItem(`rating-${tmdbId}-${type}`, rating.toString())
+        }
         onRatingChange?.(rating)
       }
     } catch (error) {
