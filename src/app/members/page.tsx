@@ -97,6 +97,14 @@ async function getMembersStats() {
       }
     })
 
+    // Sort staff members by role hierarchy
+    const roleHierarchy = { owner: 1, developer: 2, admin: 3, trial_mod: 4 }
+    staffMembers.sort((a, b) => {
+      const aHighestRole = Math.min(...a.roles.map(role => roleHierarchy[role.name] || 999))
+      const bHighestRole = Math.min(...b.roles.map(role => roleHierarchy[role.name] || 999))
+      return aHighestRole - bHighestRole
+    })
+
     // Get online users (active in last 5 minutes) from presence table
     const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000)
     const onlinePresence = await prisma.presence.findMany({
@@ -114,6 +122,11 @@ async function getMembersStats() {
             name: true,
             image: true,
             uid: true,
+            roles: {
+              select: {
+                name: true
+              }
+            },
             profile: {
               select: {
                 lastActiveAt: true,
@@ -125,7 +138,9 @@ async function getMembersStats() {
         }
       },
       orderBy: {
-        updatedAt: 'desc'
+        user: {
+          uid: 'asc'
+        }
       }
     })
     
@@ -178,33 +193,91 @@ export default async function MembersPage() {
               Online Now ({stats.onlineUsers.length})
             </h2>
             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-              {stats.onlineUsers.map((user) => (
-                <Link key={user.id} href={`/members/${user.uid}`} className="group">
-                  <div className="bg-neutral-800/50 rounded-lg p-4 hover:bg-neutral-700/50 transition-colors">
-                    <div className="relative w-12 h-12 mx-auto mb-2">
-                      <Image
-                        src={user.image || '/placeholder.png'}
-                        alt={user.name || 'User'}
-                        fill
-                        className="object-cover rounded-full"
-                      />
-                      <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-neutral-900"></div>
+              {stats.onlineUsers.map((user) => {
+                const isTrialMod = user.roles?.some(role => role.name === 'trial_mod')
+                const isOwner = user.roles?.some(role => role.name === 'owner')
+                const isAdmin = user.roles?.some(role => role.name === 'admin')
+                const isDeveloper = user.roles?.some(role => role.name === 'developer')
+                
+                // Determine colors based on highest role
+                const getRoleColors = () => {
+                  if (isOwner) {
+                    return {
+                      bg: 'from-brand-600/20 to-brand-700/20',
+                      hover: 'hover:from-brand-600/30 hover:to-brand-700/30',
+                      border: 'border-brand-600/30',
+                      text: 'text-brand-400'
+                    }
+                  } else if (isDeveloper) {
+                    return {
+                      bg: 'from-purple-600/20 to-purple-700/20',
+                      hover: 'hover:from-purple-600/30 hover:to-purple-700/30',
+                      border: 'border-purple-600/30',
+                      text: 'text-purple-400'
+                    }
+                  } else if (isAdmin) {
+                    return {
+                      bg: 'from-brand-600/20 to-brand-700/20',
+                      hover: 'hover:from-brand-600/30 hover:to-brand-700/30',
+                      border: 'border-brand-600/30',
+                      text: 'text-brand-400'
+                    }
+                  } else if (isTrialMod) {
+                    return {
+                      bg: 'from-blue-600/20 to-blue-700/20',
+                      hover: 'hover:from-blue-600/30 hover:to-blue-700/30',
+                      border: 'border-blue-600/30',
+                      text: 'text-blue-400'
+                    }
+                  } else {
+                    return {
+                      bg: 'from-neutral-800/50 to-neutral-800/50',
+                      hover: 'hover:from-neutral-700/50 hover:to-neutral-700/50',
+                      border: 'border-neutral-700/30',
+                      text: 'text-neutral-400'
+                    }
+                  }
+                }
+
+                const colors = getRoleColors()
+                const hasStaffRole = isOwner || isAdmin || isDeveloper || isTrialMod
+
+                return (
+                  <Link key={user.id} href={`/members/${user.uid}`} className="group">
+                    <div className={`${hasStaffRole ? `bg-gradient-to-br ${colors.bg} ${colors.hover} border ${colors.border}` : 'bg-neutral-800/50 hover:bg-neutral-700/50'} rounded-lg p-4 transition-colors`}>
+                      <div className="relative w-12 h-12 mx-auto mb-2">
+                        <Image
+                          src={user.image || '/placeholder.png'}
+                          alt={user.name || 'User'}
+                          fill
+                          className="object-cover rounded-full"
+                        />
+                        <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-neutral-900"></div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-sm font-medium text-white truncate">{user.name}</div>
+                        <div className="text-xs text-neutral-400">UID: {user.uid}</div>
+                        {hasStaffRole && user.roles && (
+                          <div className={`text-xs ${colors.text} mt-1 truncate`}>
+                            {user.roles.map(role => {
+                              const roleName = role.name === 'trial_mod' ? 'Trial Mod' : role.name.charAt(0).toUpperCase() + role.name.slice(1)
+                              return roleName
+                            }).join(', ')}
+                          </div>
+                        )}
+                        {user.currentPage && (
+                          <a 
+                            href={`/${user.currentPage.toLowerCase()}`}
+                            className="text-xs text-brand-400 mt-1 truncate hover:text-brand-300 hover:underline cursor-pointer block"
+                          >
+                            {user.currentPage}
+                          </a>
+                        )}
+                      </div>
                     </div>
-                    <div className="text-center">
-                      <div className="text-sm font-medium text-white truncate">{user.name}</div>
-                      <div className="text-xs text-neutral-400">UID: {user.uid}</div>
-                      {user.currentPage && (
-                        <a 
-                          href={`/${user.currentPage.toLowerCase()}`}
-                          className="text-xs text-brand-400 mt-1 truncate hover:text-brand-300 hover:underline cursor-pointer block"
-                        >
-                          {user.currentPage}
-                        </a>
-                      )}
-                    </div>
-                  </div>
-                </Link>
-              ))}
+                  </Link>
+                )
+              })}
             </div>
           </div>
         </div>
@@ -340,7 +413,10 @@ export default async function MembersPage() {
                       <div>
                         <div className="text-white font-medium">{user.name}</div>
                         <div className={`text-sm ${colors.text}`}>
-                          {user.roles.map(role => role.name).join(', ')}
+                          {user.roles.map(role => {
+                            const roleName = role.name === 'trial_mod' ? 'Trial Mod' : role.name.charAt(0).toUpperCase() + role.name.slice(1)
+                            return roleName
+                          }).join(', ')}
                         </div>
                       </div>
                     </div>
