@@ -84,11 +84,22 @@ async function getMembersStats() {
         presence: true
       },
       where: {
-        presence: {
-          updatedAt: {
-            gte: fiveMinutesAgo
+        AND: [
+          {
+            presence: {
+              updatedAt: {
+                gte: fiveMinutesAgo
+              }
+            }
+          },
+          {
+            profile: {
+              lastActiveAt: {
+                gte: fiveMinutesAgo
+              }
+            }
           }
-        }
+        ]
       },
       orderBy: {
         profile: {
@@ -241,7 +252,7 @@ export default async function MembersPage() {
                           </div>
                         )}
                         <div className="text-xs text-neutral-400 mt-1">
-                          {user.profile?.lastActiveAt ? formatLastActive(user.profile.lastActiveAt) : 'Unknown'}
+                          {user.profile?.lastActiveAt ? (isCurrentlyActive(user.profile.lastActiveAt) ? 'Now' : formatLastActive(user.profile.lastActiveAt)) : 'Unknown'}
                         </div>
                       </div>
                     </Link>
