@@ -23,16 +23,45 @@ export default function ContinueWatching() {
   useEffect(() => {
     const loadItems = () => {
       try {
-        // Get movies/TV shows progress
-        const raw = localStorage.getItem('vidsrcwtf-Progress')
+        // Debug: Log all localStorage keys
+        console.log('All localStorage keys:', Object.keys(localStorage))
+        
+        // Get movies/TV shows progress - try multiple possible keys
+        const possibleKeys = [
+          'vidsrcwtf-Progress',
+          'vidsrc-Progress', 
+          'streaming-progress',
+          'watch-progress',
+          'continue-watching'
+        ]
+        
+        let raw = null
+        let usedKey = null
+        for (const key of possibleKeys) {
+          raw = localStorage.getItem(key)
+          if (raw) {
+            usedKey = key
+            console.log(`Found data in key: ${key}`)
+            break
+          }
+        }
+        
+        console.log('Used key:', usedKey, 'Data:', raw)
+        
         let movieTvItems: any[] = []
         if (raw) {
-          const data: MediaProgress = JSON.parse(raw)
-          movieTvItems = Object.values(data)
-            .sort((a, b) => (b.last_updated || 0) - (a.last_updated || 0))
-            .slice(0, 12)
+          try {
+            const data: MediaProgress = JSON.parse(raw)
+            console.log('Parsed progress data:', data)
+            movieTvItems = Object.values(data)
+              .sort((a, b) => (b.last_updated || 0) - (a.last_updated || 0))
+              .slice(0, 12)
+          } catch (parseError) {
+            console.error('Error parsing progress data:', parseError)
+          }
         }
 
+        console.log('Final movieTvItems:', movieTvItems)
         setItems(movieTvItems)
       } catch (error) {
         console.error('Error loading continue watching:', error)

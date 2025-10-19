@@ -13,12 +13,12 @@ export async function POST(req: NextRequest) {
 
   try {
     const { commentId } = await req.json()
-    
+
     if (!commentId) {
-      return NextResponse.json({ error: 'Missing commentId' }, { status: 400 })
+      return NextResponse.json({ error: 'Comment ID required' }, { status: 400 })
     }
 
-    // Get the current user
+    // Get current user
     const user = await prisma.user.findUnique({
       where: { email: session.user.email }
     })
@@ -27,22 +27,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }
 
-    // Check if comment exists
-    const comment = await prisma.profileComment.findUnique({
-      where: { id: commentId }
-    })
-
-    if (!comment) {
-      return NextResponse.json({ error: 'Comment not found' }, { status: 404 })
-    }
-
     // Check if user already liked this comment
-    const existingLike = await prisma.commentLike.findUnique({
+    const existingLike = await prisma.commentLike.findFirst({
       where: {
-        commentId_userId: {
-          commentId,
-          userId: user.id
-        }
+        commentId: commentId,
+        userId: user.id
       }
     })
 
@@ -51,33 +40,19 @@ export async function POST(req: NextRequest) {
       await prisma.commentLike.delete({
         where: { id: existingLike.id }
       })
-
-      // Decrement like count
-      await prisma.profileComment.update({
-        where: { id: commentId },
-        data: { likes: { decrement: 1 } }
-      })
-
-      return NextResponse.json({ liked: false, likes: comment.likes - 1 })
+      return NextResponse.json({ liked: false })
     } else {
       // Like the comment
       await prisma.commentLike.create({
         data: {
-          commentId,
+          commentId: commentId,
           userId: user.id
         }
       })
-
-      // Increment like count
-      await prisma.profileComment.update({
-        where: { id: commentId },
-        data: { likes: { increment: 1 } }
-      })
-
-      return NextResponse.json({ liked: true, likes: comment.likes + 1 })
+      return NextResponse.json({ liked: true })
     }
   } catch (error) {
-    console.error('Error toggling like:', error)
+    console.error('Error toggling comment like:', error)
     return NextResponse.json({ error: 'Failed to toggle like' }, { status: 500 })
   }
 }
