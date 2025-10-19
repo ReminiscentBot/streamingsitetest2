@@ -29,7 +29,7 @@ export default function WatchPage({ params }: { params: { id: string } }) {
   const [mediaData, setMediaData] = useState<any>(null)
   const [currentEpisodeData, setCurrentEpisodeData] = useState<any>(null)
   const [showData, setShowData] = useState<any>(null)
-  const [activityTracked, setActivityTracked] = useState(false)
+  const [lastTrackedShow, setLastTrackedShow] = useState<string | null>(null)
 
   // Stop watching when component unmounts
   useEffect(() => {
@@ -155,7 +155,6 @@ export default function WatchPage({ params }: { params: { id: string } }) {
     const fetchShowData = async () => {
       try {
         console.log('🔍 Fetching TMDB data for:', { id: params.id, type: isTv ? 'tv' : 'movie' })
-        setActivityTracked(false) // Reset activity tracking for new show
         const response = await fetch(`/api/tmdb/details?id=${params.id}&type=${isTv ? 'tv' : 'movie'}`)
         const data = await response.json()
         console.log('📊 TMDB data received:', { title: data.title || data.name, poster: data.poster_path })
@@ -169,16 +168,38 @@ export default function WatchPage({ params }: { params: { id: string } }) {
 
   // Track activity when we have proper TMDB data
   useEffect(() => {
-    console.log('🔍 Activity tracking useEffect triggered:', { mediaData: !!mediaData, showData: !!showData, activityTracked })
-    if (showData && (showData.title || showData.name) && !activityTracked) {
+    console.log('🔍 Activity tracking useEffect triggered:', { mediaData: !!mediaData, showData: !!showData })
+    if (showData && (showData.title || showData.name)) {
       // Only use TMDB data for accurate titles
       const title = showData.title || showData.name
       const poster = showData.poster_path ? `https://image.tmdb.org/t/p/w500${showData.poster_path}` : ''
-      console.log('🎬 Calling trackActivity with TMDB data:', { title, poster })
-      setActivityTracked(true)
-      trackActivity(title, poster)
+      const showKey = `${title}-${params.id}` // Unique key for this show
+      
+      // Only track if this is a different show than last tracked
+      if (showKey !== lastTrackedShow) {
+        console.log('🎬 Calling trackActivity with TMDB data:', { title, poster, showKey })
+        setLastTrackedShow(showKey)
+        trackActivity(title, poster)
+      } else {
+        console.log('⏭️ Skipping duplicate activity tracking for:', title)
+      }
     }
-  }, [showData, activityTracked])
+  }, [showData, params.id, lastTrackedShow])
+
+  // Also track activity when media data is received (immediate tracking)
+  useEffect(() => {
+    if (mediaData && mediaData.title && showData && (showData.title || showData.name)) {
+      const title = showData.title || showData.name
+      const poster = showData.poster_path ? `https://image.tmdb.org/t/p/w500${showData.poster_path}` : ''
+      const showKey = `${title}-${params.id}`
+      
+      if (showKey !== lastTrackedShow) {
+        console.log('🎬 Immediate activity tracking:', { title, poster, showKey })
+        setLastTrackedShow(showKey)
+        trackActivity(title, poster)
+      }
+    }
+  }, [mediaData, showData, params.id, lastTrackedShow])
 
   // Fetch current episode data for TV shows
   useEffect(() => {
