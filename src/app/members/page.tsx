@@ -279,31 +279,65 @@ export default async function MembersPage() {
             Staff Members
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {stats.staffMembers.map((user) => (
-              <Link key={user.id} href={`/members/${user.uid}`} className="group">
-                <div className="bg-gradient-to-br from-brand-600/20 to-brand-700/20 rounded-lg p-4 hover:from-brand-600/30 hover:to-brand-700/30 transition-colors border border-brand-600/30">
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="relative w-12 h-12">
-                      <Image
-                        src={user.image || '/placeholder.png'}
-                        alt={user.name || 'User'}
-                        fill
-                        className="object-cover rounded-full"
-                      />
-                    </div>
-                    <div>
-                      <div className="text-white font-medium">{user.name}</div>
-                      <div className="text-sm text-brand-400">
-                        {user.roles.map(role => role.name).join(', ')}
+            {stats.staffMembers.map((user) => {
+              const isTrialMod = user.roles.some(role => role.name === 'trial_mod')
+              const isOwner = user.roles.some(role => role.name === 'owner')
+              const isAdmin = user.roles.some(role => role.name === 'admin')
+              
+              // Determine colors based on highest role
+              const getRoleColors = () => {
+                if (isOwner || isAdmin) {
+                  return {
+                    bg: 'from-brand-600/20 to-brand-700/20',
+                    hover: 'hover:from-brand-600/30 hover:to-brand-700/30',
+                    border: 'border-brand-600/30',
+                    text: 'text-brand-400'
+                  }
+                } else if (isTrialMod) {
+                  return {
+                    bg: 'from-blue-600/20 to-blue-700/20',
+                    hover: 'hover:from-blue-600/30 hover:to-blue-700/30',
+                    border: 'border-blue-600/30',
+                    text: 'text-blue-400'
+                  }
+                } else {
+                  return {
+                    bg: 'from-brand-600/20 to-brand-700/20',
+                    hover: 'hover:from-brand-600/30 hover:to-brand-700/30',
+                    border: 'border-brand-600/30',
+                    text: 'text-brand-400'
+                  }
+                }
+              }
+              
+              const colors = getRoleColors()
+              
+              return (
+                <Link key={user.id} href={`/members/${user.uid}`} className="group">
+                  <div className={`bg-gradient-to-br ${colors.bg} rounded-lg p-4 ${colors.hover} transition-colors border ${colors.border}`}>
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="relative w-12 h-12">
+                        <Image
+                          src={user.image || '/placeholder.png'}
+                          alt={user.name || 'User'}
+                          fill
+                          className="object-cover rounded-full"
+                        />
+                      </div>
+                      <div>
+                        <div className="text-white font-medium">{user.name}</div>
+                        <div className={`text-sm ${colors.text}`}>
+                          {user.roles.map(role => role.name).join(', ')}
+                        </div>
                       </div>
                     </div>
+                    <div className="text-xs text-neutral-400">
+                      UID: {user.uid} • Last active: {user.profile?.lastActiveAt ? formatLastActive(user.profile.lastActiveAt) : '—'}
+                    </div>
                   </div>
-                  <div className="text-xs text-neutral-400">
-                    UID: {user.uid} • Last active: {user.profile?.lastActiveAt ? formatLastActive(user.profile.lastActiveAt) : '—'}
-                  </div>
-                </div>
-              </Link>
-            ))}
+                </Link>
+              )
+            })}
           </div>
         </div>
 

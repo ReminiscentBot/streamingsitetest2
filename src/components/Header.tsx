@@ -69,7 +69,7 @@ export default function Header() {
         
         {/* Search Bar */}
         <div className="relative hidden md:block">
-          <FontAwesomeIcon icon={faSearch} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-400" />
+          <FontAwesomeIcon icon={faSearch} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-400 w-4 h-4" />
           <input
             type="text"
             placeholder="Search"
