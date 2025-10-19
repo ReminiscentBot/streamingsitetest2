@@ -31,6 +31,19 @@ export default function WatchPage({ params }: { params: { id: string } }) {
   const [showData, setShowData] = useState<any>(null)
   const [activityTracked, setActivityTracked] = useState(false)
 
+  // Stop watching when component unmounts
+  useEffect(() => {
+    return () => {
+      // Call stop watching API when user leaves the watch page
+      fetch('/api/activity/stop', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      }).catch(error => {
+        console.error('Failed to stop watching:', error)
+      })
+    }
+  }, [])
+
   // Track activity when user starts watching
   const trackActivity = async (title: string, poster: string) => {
     try {

@@ -31,6 +31,22 @@ export async function POST(req: NextRequest) {
       updatedAt: new Date()
     },
   })
+
+  // Clear watching data if user is not on a watch page
+  if (currentPage && !currentPage.startsWith('watch/')) {
+    await prisma.profile.updateMany({
+      where: { userId: user.id },
+      data: {
+        lastWatchingId: null,
+        lastWatchingTitle: null,
+        lastWatchingType: null,
+        lastWatchingSeason: null,
+        lastWatchingEpisode: null,
+        lastWatchingPoster: null,
+        lastWatchingTmdbId: null
+      }
+    })
+  }
   
   // Also update the user's profile lastActiveAt
   await prisma.profile.upsert({
