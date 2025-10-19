@@ -5,36 +5,12 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { formatLastActive, isCurrentlyActive, formatSearchTime } from '@/lib/timeUtils'
 
-function formatTotalTime(minutes: number): string {
-  if (minutes < 60) {
-    return `${minutes}m`
-  } else if (minutes < 1440) { // less than 24 hours
-    const hours = Math.floor(minutes / 60)
-    return `${hours}h`
-  } else if (minutes < 10080) { // less than 7 days
-    const days = Math.floor(minutes / 1440)
-    return `${days}d`
-  } else if (minutes < 40320) { // less than 4 weeks
-    const weeks = Math.floor(minutes / 10080)
-    return `${weeks}w`
-  } else {
-    const months = Math.floor(minutes / 40320)
-    return `${months}mo`
-  }
-}
-
-function getSessionDuration(sessionStartTime: Date | null): string {
-  if (!sessionStartTime) return '0m'
-  const now = new Date()
-  const diffMs = now.getTime() - sessionStartTime.getTime()
-  const diffMinutes = Math.floor(diffMs / (1000 * 60))
-  return formatTotalTime(diffMinutes)
-}
 
 const prisma = new PrismaClient()
 
 async function getMembersStats() {
   try {
+    console.log('🔍 Fetching members stats...')
     // Get users with most ratings
     const mostRatedUsers = await prisma.user.findMany({
       include: {
@@ -60,26 +36,23 @@ async function getMembersStats() {
       roles: user.roles
     }))
 
-    // Get most active users (by total time on site)
-    const mostActiveUsers = await prisma.user.findMany({
+    // Get last active users (by last activity)
+    const lastActiveUsers = await prisma.user.findMany({
       include: {
         profile: true,
         roles: true
       },
       where: {
         profile: {
-          isNot: null,
-          totalTimeOnSite: {
-            gt: 0
-          }
+          isNot: null
         }
       },
       orderBy: {
         profile: {
-          totalTimeOnSite: 'desc'
+          lastActiveAt: 'desc'
         }
       },
-      take: 5
+      take: 10
     })
 
     // Get staff members
@@ -111,20 +84,11 @@ async function getMembersStats() {
         presence: true
       },
       where: {
-        OR: [
-          {
-            presence: {
-              isNot: null
-            }
-          },
-          {
-            profile: {
-              lastActiveAt: {
-                gte: fiveMinutesAgo
-              }
-            }
+        presence: {
+          updatedAt: {
+            gte: fiveMinutesAgo
           }
-        ]
+        }
       },
       orderBy: {
         profile: {
@@ -134,6 +98,7 @@ async function getMembersStats() {
     })
 
     // Get recent searches
+    console.log('🔍 Fetching recent searches...')
     const recentSearches = await prisma.search.findMany({
       take: 20,
       orderBy: {
@@ -150,38 +115,23 @@ async function getMembersStats() {
         }
       }
     })
-
-    // Get popular search terms
-    const popularSearches = await prisma.search.groupBy({
-      by: ['query'],
-      _count: {
-        query: true
-      },
-      orderBy: {
-        _count: {
-          query: 'desc'
-        }
-      },
-      take: 10
-    })
+    console.log(`📋 Found ${recentSearches.length} recent searches`)
 
     return {
       mostRatedDetails,
-      mostActiveUsers,
+      lastActiveUsers,
       staffMembers,
       onlineUsers,
-      recentSearches,
-      popularSearches
+      recentSearches
     }
   } catch (error) {
     console.error('Error fetching members stats:', error)
     return {
       mostRatedDetails: [],
-      mostActiveUsers: [],
+      lastActiveUsers: [],
       staffMembers: [],
       onlineUsers: [],
-      recentSearches: [],
-      popularSearches: []
+      recentSearches: []
     }
   }
 }
@@ -189,6 +139,13 @@ async function getMembersStats() {
 export default async function MembersPage() {
   const session = await getServerSession(authOptions)
   const stats = await getMembersStats()
+  
+  console.log('📊 Members page stats:', {
+    lastActiveUsers: stats.lastActiveUsers?.length || 0,
+    onlineUsers: stats.onlineUsers?.length || 0,
+    staffMembers: stats.staffMembers?.length || 0,
+    recentSearches: stats.recentSearches?.length || 0
+  })
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-neutral-900 via-neutral-800 to-neutral-900">
@@ -279,13 +236,13 @@ export default async function MembersPage() {
                           </div>
                         )}
                         {user.presence?.currentPage && (
-                          <a 
-                            href={`/${user.presence.currentPage.toLowerCase()}`}
-                            className="text-xs text-brand-400 mt-1 truncate hover:text-brand-300 hover:underline cursor-pointer block"
-                          >
+                          <div className="text-xs text-brand-400 mt-1 truncate">
                             {user.presence.currentPage}
-                          </a>
+                          </div>
                         )}
+                        <div className="text-xs text-neutral-400 mt-1">
+                          {user.profile?.lastActiveAt ? formatLastActive(user.profile.lastActiveAt) : 'Unknown'}
+                        </div>
                       </div>
                     </Link>
                   </div>
@@ -304,7 +261,7 @@ export default async function MembersPage() {
               Most Active Raters
             </h3>
             <div className="space-y-3">
-              {stats.mostRatedDetails.map((user, index) => (
+              {stats.mostRatedDetails.slice(0, 5).map((user, index) => (
                 <div key={user.id} className="flex items-center gap-3 p-3 rounded-lg hover:bg-neutral-800/50 transition-colors">
                   <Link href={`/members/${user.uid}`} className="flex items-center gap-3 w-full">
                     <span className="w-8 h-8 bg-brand-600 rounded-full flex items-center justify-center text-white font-bold text-sm">
@@ -336,19 +293,17 @@ export default async function MembersPage() {
           <div className="bg-neutral-900/50 backdrop-blur-sm rounded-xl border border-neutral-700/50 p-6">
             <h3 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
               <span className="text-brand-400">⏰</span>
-              Most Active Users (Top 5)
+              Last Active Users
             </h3>
-            <p className="text-sm text-neutral-400 mb-4">
-              Users ranked by total time spent on the website
-            </p>
-            <div className="space-y-3">
-              {stats.mostActiveUsers.slice(0, 5).map((user, index) => (
-                <div key={user.id} className="flex items-center gap-3 p-3 rounded-lg hover:bg-neutral-800/50 transition-colors">
-                  <Link href={`/members/${user.uid}`} className="flex items-center gap-3 w-full">
-                    <span className="w-8 h-8 bg-brand-600 rounded-full flex items-center justify-center text-white font-bold text-sm">
+            <div className="space-y-2">
+              {stats.lastActiveUsers && stats.lastActiveUsers.length > 0 ? (
+                stats.lastActiveUsers.map((user, index) => (
+                <div key={user.id} className="flex items-center gap-2 p-2 rounded-lg hover:bg-neutral-800/50 transition-colors">
+                  <Link href={`/members/${user.uid}`} className="flex items-center gap-2 w-full">
+                    <span className="w-6 h-6 bg-brand-600 rounded-full flex items-center justify-center text-white font-bold text-xs">
                       {index + 1}
                     </span>
-                    <div className="relative w-10 h-10">
+                    <div className="relative w-8 h-8">
                       <Image
                         src={user.image || '/placeholder.png'}
                         alt={user.name || 'User'}
@@ -357,23 +312,23 @@ export default async function MembersPage() {
                       />
                     </div>
                     <div className="flex-1">
-                      <div className="text-white font-medium">{user.name}</div>
-                      <div className="text-sm text-neutral-400">UID: {user.uid}</div>
+                      <div className="text-white font-medium text-sm">{user.name}</div>
+                      <div className="text-xs text-neutral-400">UID: {user.uid}</div>
                     </div>
                     <div className="text-right">
-                      <div className="text-xs text-neutral-400">Total time</div>
-                      <div className="text-sm text-white">
-                        {user.profile?.totalTimeOnSite ? formatTotalTime(user.profile.totalTimeOnSite) : '0m'}
+                      <div className="text-xs text-neutral-400">Last active</div>
+                      <div className="text-xs text-white">
+                        {user.profile?.lastActiveAt ? formatLastActive(user.profile.lastActiveAt) : 'Never'}
                       </div>
-                      {user.profile?.lastWatchingTitle && (
-                        <div className="text-xs text-brand-400 mt-1">
-                          Watching: {user.profile.lastWatchingTitle}
-                        </div>
-                      )}
                     </div>
                   </Link>
                 </div>
-              ))}
+                ))
+              ) : (
+                <div className="text-center py-8">
+                  <div className="text-neutral-500 text-sm">No users found</div>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -446,7 +401,7 @@ export default async function MembersPage() {
                         </div>
                       </div>
                       <div className="text-xs text-neutral-400">
-                        UID: {user.uid} • Session: {getSessionDuration(user.profile?.sessionStartTime)}
+                        UID: {user.uid} • {user.profile?.lastActiveAt ? `Last online: ${formatLastActive(user.profile.lastActiveAt)}` : 'Session: 0m'}
                       </div>
                     </Link>
                   </div>
@@ -495,31 +450,6 @@ export default async function MembersPage() {
           </div>
         </div>
 
-        {/* Popular Search Terms Section */}
-        <div className="mb-8">
-          <div className="bg-neutral-900/50 backdrop-blur-sm rounded-xl border border-neutral-700/50 p-6">
-            <h2 className="text-2xl font-semibold text-white mb-4 flex items-center gap-2">
-              <span className="text-brand-400">🔥</span>
-              Popular Search Terms
-            </h2>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
-              {stats.popularSearches?.map((search, index) => (
-                <div key={search.query} className="bg-neutral-800/50 rounded-lg p-3 border border-neutral-700/30 hover:bg-neutral-700/50 transition-colors">
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-xs text-neutral-400">#{index + 1}</span>
-                    <span className="text-xs text-brand-400">{search._count.query} searches</span>
-                  </div>
-                  <div className="text-white font-medium text-sm truncate" title={search.query}>
-                    "{search.query}"
-                  </div>
-                </div>
-              ))}
-              {(!stats.popularSearches || stats.popularSearches.length === 0) && (
-                <div className="col-span-full text-neutral-400 text-center py-8">No popular searches yet</div>
-              )}
-            </div>
-          </div>
-        </div>
 
         {/* Future Stats Placeholders */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">

@@ -54,46 +54,17 @@ export async function POST(req: NextRequest) {
     })
   }
   
-  // Update the user's profile with time tracking
-  const now = new Date()
-  const profile = await prisma.profile.findUnique({
-    where: { userId: user.id }
-  })
-
-  if (profile) {
-    // If user has a session start time, calculate time spent and add to total
-    if (profile.sessionStartTime) {
-      const sessionDuration = Math.floor((now.getTime() - profile.sessionStartTime.getTime()) / (1000 * 60)) // minutes
-      const newTotalTime = profile.totalTimeOnSite + sessionDuration
-      
-      await prisma.profile.update({
-        where: { userId: user.id },
-        data: {
-          lastActiveAt: now,
-          totalTimeOnSite: newTotalTime,
-          sessionStartTime: now // Start new session
-        }
-      })
-    } else {
-      // First time tracking for this user, start session
-      await prisma.profile.update({
-        where: { userId: user.id },
-        data: {
-          lastActiveAt: now,
-          sessionStartTime: now
-        }
-      })
+  // Update the user's profile lastActiveAt
+  await prisma.profile.upsert({
+    where: { userId: user.id },
+    update: {
+      lastActiveAt: new Date()
+    },
+    create: {
+      userId: user.id,
+      lastActiveAt: new Date()
     }
-  } else {
-    // Create new profile with session start
-    await prisma.profile.create({
-      data: {
-        userId: user.id,
-        lastActiveAt: now,
-        sessionStartTime: now
-      }
-    })
-  }
+  })
   return NextResponse.json({ ok: true })
 }
 
@@ -107,14 +78,7 @@ export async function GET() {
           id: true,
           name: true,
           image: true,
-          uid: true,
-          profile: {
-            select: {
-              totalTimeOnSite: true,
-              sessionStartTime: true,
-              lastActiveAt: true
-            }
-          }
+          uid: true
         }
       }
     }

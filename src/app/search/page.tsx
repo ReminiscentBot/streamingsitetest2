@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import SearchTracker from '@/components/SearchTracker'
 
 export default async function SearchPage({ searchParams }: { searchParams: { q?: string } }) {
   const q = (searchParams.q || '').trim()
@@ -9,6 +10,7 @@ export default async function SearchPage({ searchParams }: { searchParams: { q?:
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-neutral-900 via-neutral-800 to-neutral-900">
+      <SearchTracker query={q} results={results} />
       <div className="max-w-7xl mx-auto px-6 py-8">
         {/* Header */}
         <div className="mb-8">
