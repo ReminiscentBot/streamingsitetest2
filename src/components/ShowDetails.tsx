@@ -75,7 +75,7 @@ export default function ShowDetails({ tmdbId, type, currentEpisode, currentSeaso
 
     const fetchWebsiteRating = async () => {
       try {
-        const response = await fetch(`/api/ratings?tmdbId=${tmdbId}&type=${type}`)
+        const response = await fetch(`/api/ratings/public?tmdbId=${tmdbId}&type=${type}`)
         if (response.ok) {
           const data = await response.json()
           setWebsiteRating({
