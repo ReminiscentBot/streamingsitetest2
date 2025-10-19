@@ -75,35 +75,20 @@ async function getMembersStats() {
       }
     })
 
-    // Get online users (active within last 5 minutes) - use same logic as Last Active Users
-    const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000)
-    const onlineUsers = await prisma.user.findMany({
-      include: {
-        profile: true,
-        roles: true
-      },
-      where: {
-        AND: [
-          {
-            profile: {
-              isNot: null
-            }
-          },
-          {
-            profile: {
-              lastActiveAt: {
-                gte: fiveMinutesAgo
-              }
-            }
-          }
-        ]
-      },
-      orderBy: {
-        profile: {
-          lastActiveAt: 'desc'
-        }
+    // Filter to only users who show "Now" in Last Active Users (within 1 minute)
+    const oneMinuteAgo = new Date(Date.now() - 1 * 60 * 1000)
+    const onlineUsers = lastActiveUsers.filter(user => {
+      if (!user.profile?.lastActiveAt) {
+        console.log(`❌ ${user.name} - No lastActiveAt`)
+        return false
       }
+      const lastActive = new Date(user.profile.lastActiveAt)
+      const isOnline = lastActive >= oneMinuteAgo
+      console.log(`👤 ${user.name} - Last active: ${user.profile.lastActiveAt}, Online: ${isOnline}`)
+      return isOnline
     })
+    
+    console.log(`📊 Online users: ${onlineUsers.length}/${lastActiveUsers.length}`)
 
     // Get recent searches
     console.log('🔍 Fetching recent searches...')
