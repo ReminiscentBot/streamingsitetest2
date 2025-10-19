@@ -12,7 +12,7 @@ export default function Related({ id, type }: { id: string; type: 'movie' | 'tv'
   if (error) {
     return (
       <div className="bg-neutral-900/70 border border-neutral-800 rounded-lg p-4">
-        <h3 className="text-white font-semibold mb-3">> RELATED</h3>
+        <h3 className="text-white font-semibold mb-3">&gt; RELATED</h3>
         <div className="text-neutral-400 text-sm">Failed to load related content</div>
       </div>
     )
@@ -21,7 +21,7 @@ export default function Related({ id, type }: { id: string; type: 'movie' | 'tv'
   if (!data) {
     return (
       <div className="bg-neutral-900/70 border border-neutral-800 rounded-lg p-4">
-        <h3 className="text-white font-semibold mb-3">> RELATED</h3>
+        <h3 className="text-white font-semibold mb-3">&gt; RELATED</h3>
         <div className="text-neutral-400 text-sm">Loading related content...</div>
       </div>
     )
@@ -32,7 +32,7 @@ export default function Related({ id, type }: { id: string; type: 'movie' | 'tv'
   if (!items.length) {
     return (
       <div className="bg-neutral-900/70 border border-neutral-800 rounded-lg p-4">
-        <h3 className="text-white font-semibold mb-3">> RELATED</h3>
+        <h3 className="text-white font-semibold mb-3">&gt; RELATED</h3>
         <div className="text-neutral-400 text-sm">No related content found</div>
       </div>
     )

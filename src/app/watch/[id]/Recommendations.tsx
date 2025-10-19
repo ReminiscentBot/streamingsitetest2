@@ -12,7 +12,7 @@ export default function Recommendations({ id, type }: { id: string; type: 'movie
   if (error) {
     return (
       <div className="bg-neutral-900/70 border border-neutral-800 rounded-lg p-4">
-        <h3 className="text-white font-semibold mb-3">> RECOMMENDATIONS</h3>
+        <h3 className="text-white font-semibold mb-3">&gt; RECOMMENDATIONS</h3>
         <div className="text-neutral-400 text-sm">Failed to load recommendations</div>
       </div>
     )
@@ -21,7 +21,7 @@ export default function Recommendations({ id, type }: { id: string; type: 'movie
   if (!data) {
     return (
       <div className="bg-neutral-900/70 border border-neutral-800 rounded-lg p-4">
-        <h3 className="text-white font-semibold mb-3">> RECOMMENDATIONS</h3>
+        <h3 className="text-white font-semibold mb-3">&gt; RECOMMENDATIONS</h3>
         <div className="text-neutral-400 text-sm">Loading recommendations...</div>
       </div>
     )
@@ -32,7 +32,7 @@ export default function Recommendations({ id, type }: { id: string; type: 'movie
   if (!items.length) {
     return (
       <div className="bg-neutral-900/70 border border-neutral-800 rounded-lg p-4">
-        <h3 className="text-white font-semibold mb-3">> RECOMMENDATIONS</h3>
+        <h3 className="text-white font-semibold mb-3">&gt; RECOMMENDATIONS</h3>
         <div className="text-neutral-400 text-sm">No recommendations found</div>
       </div>
     )
