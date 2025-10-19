@@ -77,37 +77,7 @@ export async function GET(req: NextRequest) {
         return (b.popularity || 0) - (a.popularity || 0)
       })
     
-    // Track search if user is authenticated
-    const session = await getServerSession(authOptions)
-    console.log('🔍 Search tracking - Session:', session ? 'Found' : 'Not found')
-    if (session?.user?.email) {
-      try {
-        console.log('🔍 Looking up user for search tracking...')
-        const user = await prisma.user.findUnique({ 
-          where: { email: session.user.email },
-          select: { id: true, name: true }
-        })
-        
-        if (user) {
-          console.log(`📝 Creating search record for user ${user.name} (${user.id})`)
-          await prisma.search.create({
-            data: {
-              userId: user.id,
-              query: q,
-              results: filtered.length
-            }
-          })
-          console.log(`✅ Search recorded: "${q}" with ${filtered.length} results`)
-        } else {
-          console.log('❌ User not found for search tracking')
-        }
-      } catch (error) {
-        // Don't fail the search if tracking fails
-        console.error('❌ Search tracking error:', error)
-      }
-    } else {
-      console.log('❌ No session for search tracking')
-    }
+    // Search tracking is now handled client-side by SearchTracker component
     
     return NextResponse.json({ ...data, results: filtered })
   } catch (e: any) {
