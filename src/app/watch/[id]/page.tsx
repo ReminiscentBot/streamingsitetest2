@@ -31,6 +31,11 @@ export default function WatchPage({ params }: { params: { id: string } }) {
   const [showData, setShowData] = useState<any>(null)
   const [lastTrackedShow, setLastTrackedShow] = useState<string | null>(null)
 
+  // Track presence when component mounts
+  useEffect(() => {
+    trackPresence()
+  }, [isTv])
+
   // Stop watching when component unmounts
   useEffect(() => {
     return () => {
@@ -69,6 +74,23 @@ export default function WatchPage({ params }: { params: { id: string } }) {
       }
     } catch (error) {
       console.error('Failed to track activity:', error)
+    }
+  }
+
+  // Track presence for watch pages
+  const trackPresence = async () => {
+    try {
+      await fetch('/api/presence', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          currentPage: isTv ? 'Watching TV Shows' : 'Watching Movies',
+          pageType: 'watching',
+          mediaType: isTv ? 'tv' : 'movie'
+        })
+      })
+    } catch (error) {
+      console.error('Failed to track presence:', error)
     }
   }
 

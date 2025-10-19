@@ -123,6 +123,8 @@ model Presence {
   user        User     @relation(fields: [userId], references: [id])
   userId      String   @unique
   currentPage String?  // Track what page the user is currently on
+  pageType    String?  // Track the type of page (e.g., 'browsing', 'watching')
+  mediaType   String?  // Track media type for watch pages (e.g., 'tv', 'movie')
   updatedAt   DateTime @updatedAt
   now         DateTime @default(now())
 }

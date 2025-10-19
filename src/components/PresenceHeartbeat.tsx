@@ -12,29 +12,37 @@ export default function PresenceHeartbeat() {
     if (status !== 'authenticated' || !session) return
 
     // Get a friendly page name from the pathname
-    const getPageName = (path: string) => {
-      if (path === '/') return 'Home'
-      if (path.startsWith('/search')) return 'Search'
-      if (path.startsWith('/watch/')) return 'Watching'
+    const getPageInfo = (path: string) => {
+      if (path === '/') return { currentPage: 'Home', pageType: 'browsing' }
+      if (path.startsWith('/search')) return { currentPage: 'Search', pageType: 'browsing' }
+      if (path.startsWith('/watch/')) {
+        // For watch pages, we'll determine the media type from URL params
+        // This will be handled by the watch page itself
+        return { currentPage: 'Watching', pageType: 'watching' }
+      }
       if (path.startsWith('/u/')) {
         // Extract the UID from the path to show which profile
         const uid = path.split('/u/')[1]
-        return `Profile:${uid}`
+        return { currentPage: `Profile:${uid}`, pageType: 'browsing' }
       }
-      if (path.startsWith('/members')) return 'Members'
-      if (path.startsWith('/settings')) return 'Settings'
-      if (path.startsWith('/admin')) return 'Admin Panel'
-      if (path.startsWith('/customize')) return 'Customize Profile'
-      return 'Browsing'
+      if (path.startsWith('/members')) return { currentPage: 'Members', pageType: 'browsing' }
+      if (path.startsWith('/settings')) return { currentPage: 'Settings', pageType: 'browsing' }
+      if (path.startsWith('/admin')) return { currentPage: 'Admin Panel', pageType: 'browsing' }
+      if (path.startsWith('/customize')) return { currentPage: 'Customize Profile', pageType: 'browsing' }
+      if (path.startsWith('/browsing')) return { currentPage: 'Browsing', pageType: 'browsing' }
+      if (path.startsWith('/movies')) return { currentPage: 'Movies', pageType: 'browsing' }
+      if (path.startsWith('/tv')) return { currentPage: 'TV Shows', pageType: 'browsing' }
+      return { currentPage: 'Browsing', pageType: 'browsing' }
     }
 
     // Send initial heartbeat
     const sendHeartbeat = async () => {
       try {
+        const pageInfo = getPageInfo(pathname || '')
         await fetch('/api/presence', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ currentPage: getPageName(pathname || '') })
+          body: JSON.stringify(pageInfo)
         })
       } catch (error) {
         console.error('Failed to send presence heartbeat:', error)

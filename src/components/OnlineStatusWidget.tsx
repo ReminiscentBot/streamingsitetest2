@@ -12,6 +12,8 @@ interface OnlineStatusData {
     details?: string
   }
   currentPage?: string
+  pageType?: string
+  mediaType?: string
 }
 
 export default function OnlineStatusWidget({ userId }: { userId: string }) {
@@ -39,7 +41,9 @@ export default function OnlineStatusWidget({ userId }: { userId: string }) {
         setStatusData({
           status: discordData?.status || 'offline',
           activity: discordData?.activities?.[0],
-          currentPage: userPresence?.currentPage
+          currentPage: userPresence?.currentPage,
+          pageType: userPresence?.pageType,
+          mediaType: userPresence?.mediaType
         })
       } catch (error) {
         console.error('Failed to fetch status:', error)
@@ -111,7 +115,9 @@ export default function OnlineStatusWidget({ userId }: { userId: string }) {
           <div className="flex items-center gap-3">
             <FontAwesomeIcon icon={faGlobe} className="text-neutral-500 text-sm" />
             <div className="flex-1">
-              <div className="text-xs text-neutral-400 mb-1">Browsing</div>
+              <div className="text-xs text-neutral-400 mb-1">
+                {statusData.pageType === 'watching' ? 'Watching' : 'Browsing'}
+              </div>
               {statusData.currentPage.startsWith('Profile:') ? (
                 <a
                   href={`/u/${statusData.currentPage.split(':')[1]}`}
@@ -121,7 +127,7 @@ export default function OnlineStatusWidget({ userId }: { userId: string }) {
                 </a>
               ) : (
                 <a
-                  href={`/${statusData.currentPage.toLowerCase()}`}
+                  href={`/${statusData.currentPage.toLowerCase().replace(/\s+/g, '')}`}
                   className="text-sm text-brand-400 hover:text-brand-300 hover:underline cursor-pointer"
                 >
                   {statusData.currentPage}

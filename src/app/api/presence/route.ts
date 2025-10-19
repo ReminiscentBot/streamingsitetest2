@@ -10,7 +10,7 @@ export async function POST(req: NextRequest) {
   if (!session?.user?.email) return NextResponse.json({ ok: false }, { status: 401 })
   
   const body = await req.json().catch(() => ({}))
-  const { currentPage } = body
+  const { currentPage, pageType, mediaType } = body
   
   // Get the user ID from the database
   const user = await prisma.user.findUnique({
@@ -23,11 +23,15 @@ export async function POST(req: NextRequest) {
     where: { userId: user.id },
     update: { 
       updatedAt: new Date(),
-      currentPage: currentPage || null
+      currentPage: currentPage || null,
+      pageType: pageType || null,
+      mediaType: mediaType || null
     },
     create: { 
       userId: user.id,
       currentPage: currentPage || null,
+      pageType: pageType || null,
+      mediaType: mediaType || null,
       updatedAt: new Date()
     },
   })
