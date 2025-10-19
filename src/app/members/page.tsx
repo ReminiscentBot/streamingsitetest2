@@ -3,157 +3,146 @@ import { authOptions } from '@/lib/auth'
 import { PrismaClient } from '@prisma/client'
 import Link from 'next/link'
 import Image from 'next/image'
-import { formatLastActive, isCurrentlyActive } from '@/lib/timeUtils'
+import { formatLastActive, isCurrentlyActive, formatSearchTime } from '@/lib/timeUtils'
 
 const prisma = new PrismaClient()
 
 async function getMembersStats() {
   try {
-    // Get users who have rated the most content
+    // Get users with most ratings
     const mostRatedUsers = await prisma.user.findMany({
-      select: {
-        id: true,
-        name: true,
-        image: true,
-        uid: true,
-        profile: {
-          select: {
-            lastActiveAt: true,
-            lastWatchingTitle: true,
-            lastWatchingPoster: true,
-          }
-        },
-        ratings: {
-          select: {
-            id: true
-          }
-        }
+      include: {
+        ratings: true,
+        profile: true,
+        roles: true
       },
       orderBy: {
         ratings: {
           _count: 'desc'
         }
       },
-      take: 5
+      take: 10
     })
 
-    // Add rating count to each user
     const mostRatedDetails = mostRatedUsers.map(user => ({
-      ...user,
-      ratingCount: user.ratings.length
+      id: user.id,
+      name: user.name,
+      uid: user.uid,
+      image: user.image,
+      ratingCount: user.ratings.length,
+      profile: user.profile,
+      roles: user.roles
     }))
 
-    // Get most time online (users with most recent activity)
+    // Get most active users (by profile activity)
     const mostActiveUsers = await prisma.user.findMany({
-      take: 10,
+      include: {
+        profile: true,
+        roles: true
+      },
+      where: {
+        profile: {
+          isNot: null
+        }
+      },
       orderBy: {
         profile: {
           lastActiveAt: 'desc'
         }
       },
-      select: {
-        id: true,
-        name: true,
-        image: true,
-        uid: true,
-        profile: {
-          select: {
-            lastActiveAt: true,
-            lastWatchingTitle: true,
-            lastWatchingPoster: true,
-          }
-        }
-      }
+      take: 10
     })
 
-    // Get staff members (users with any staff roles)
+    // Get staff members
     const staffMembers = await prisma.user.findMany({
+      include: {
+        roles: true,
+        profile: true
+      },
       where: {
         roles: {
           some: {
             name: {
-              in: ['owner', 'developer', 'admin', 'trial_mod']
-            }
-          }
-        }
-      },
-      select: {
-        id: true,
-        name: true,
-        image: true,
-        uid: true,
-        roles: {
-          select: {
-            name: true
-          }
-        },
-        profile: {
-          select: {
-            lastActiveAt: true,
-            lastWatchingTitle: true,
-            lastWatchingPoster: true,
-          }
-        }
-      }
-    })
-
-    // Sort staff members by role hierarchy
-    const roleHierarchy: Record<string, number> = { owner: 1, developer: 2, admin: 3, trial_mod: 4 }
-    staffMembers.sort((a, b) => {
-      const aHighestRole = Math.min(...a.roles.map(role => roleHierarchy[role.name] || 999))
-      const bHighestRole = Math.min(...b.roles.map(role => roleHierarchy[role.name] || 999))
-      return aHighestRole - bHighestRole
-    })
-
-    // Get online users (active in last 5 minutes) from presence table
-    const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000)
-    const onlinePresence = await prisma.presence.findMany({
-      where: {
-        updatedAt: {
-          gte: fiveMinutesAgo
-        }
-      },
-      select: {
-        currentPage: true,
-        updatedAt: true,
-        user: {
-          select: {
-            id: true,
-            name: true,
-            image: true,
-            uid: true,
-            roles: {
-              select: {
-                name: true
-              }
-            },
-            profile: {
-              select: {
-                lastActiveAt: true,
-                lastWatchingTitle: true,
-                lastWatchingPoster: true,
-              }
+              in: ['owner', 'admin', 'developer', 'trial_mod']
             }
           }
         }
       },
       orderBy: {
-        user: {
-          uid: 'asc'
+        createdAt: 'asc'
+      }
+    })
+
+    // Get online users (active within last 5 minutes)
+    const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000)
+    const onlineUsers = await prisma.user.findMany({
+      include: {
+        profile: true,
+        roles: true,
+        presence: true
+      },
+      where: {
+        OR: [
+          {
+            presence: {
+              isNot: null
+            }
+          },
+          {
+            profile: {
+              lastActiveAt: {
+                gte: fiveMinutesAgo
+              }
+            }
+          }
+        ]
+      },
+      orderBy: {
+        profile: {
+          lastActiveAt: 'desc'
         }
       }
     })
-    
-    const onlineUsers = onlinePresence.map(p => ({
-      ...p.user,
-      currentPage: p.currentPage
-    }))
+
+    // Get recent searches
+    const recentSearches = await prisma.search.findMany({
+      take: 20,
+      orderBy: {
+        createdAt: 'desc'
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            image: true,
+            uid: true
+          }
+        }
+      }
+    })
+
+    // Get popular search terms
+    const popularSearches = await prisma.search.groupBy({
+      by: ['query'],
+      _count: {
+        query: true
+      },
+      orderBy: {
+        _count: {
+          query: 'desc'
+        }
+      },
+      take: 10
+    })
 
     return {
       mostRatedDetails,
       mostActiveUsers,
       staffMembers,
-      onlineUsers
+      onlineUsers,
+      recentSearches,
+      popularSearches
     }
   } catch (error) {
     console.error('Error fetching members stats:', error)
@@ -161,7 +150,9 @@ async function getMembersStats() {
       mostRatedDetails: [],
       mostActiveUsers: [],
       staffMembers: [],
-      onlineUsers: []
+      onlineUsers: [],
+      recentSearches: [],
+      popularSearches: []
     }
   }
 }
@@ -173,15 +164,17 @@ export default async function MembersPage() {
   return (
     <main className="min-h-screen bg-gradient-to-br from-neutral-900 via-neutral-800 to-neutral-900">
       <div className="max-w-6xl mx-auto p-6">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-white mb-2">Members Hub</h1>
+        {/* Header */}
+        <div className="text-center mb-8">
+          <h1 className="text-4xl font-bold text-white mb-4">
+            Community Members
+          </h1>
           <p className="text-neutral-400 mb-4">Discover the community and see who's online</p>
           <Link 
             href="/browsing"
             className="inline-flex items-center gap-2 px-6 py-3 bg-brand-600 hover:bg-brand-700 text-white font-medium rounded-lg transition-colors"
           >
-            <span>🌐</span>
-            See Who's Currently Browsing
+            Browse Content
           </Link>
         </div>
 
@@ -189,62 +182,53 @@ export default async function MembersPage() {
         <div className="mb-8">
           <div className="bg-neutral-900/50 backdrop-blur-sm rounded-xl border border-neutral-700/50 p-6">
             <h2 className="text-2xl font-semibold text-white mb-4 flex items-center gap-2">
-              <span className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></span>
-              Online Now ({stats.onlineUsers.length})
+              <span className="text-brand-400">🟢</span>
+              Online Now ({stats.onlineUsers?.length || 0})
             </h2>
             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-              {stats.onlineUsers.map((user) => {
-                const isTrialMod = user.roles?.some(role => role.name === 'trial_mod')
+              {stats.onlineUsers
+                ?.sort((a, b) => {
+                  // Sort by role priority first
+                  const getRolePriority = (user: any) => {
+                    if (user.roles?.some((role: any) => role.name === 'owner')) return 0
+                    if (user.roles?.some((role: any) => role.name === 'admin')) return 1
+                    if (user.roles?.some((role: any) => role.name === 'developer')) return 2
+                    if (user.roles?.some((role: any) => role.name === 'trial_mod')) return 3
+                    return 4
+                  }
+                  
+                  const aPriority = getRolePriority(a)
+                  const bPriority = getRolePriority(b)
+                  
+                  if (aPriority !== bPriority) {
+                    return aPriority - bPriority
+                  }
+                  
+                  // Then by last active time
+                  const aTime = a.profile?.lastActiveAt ? new Date(a.profile.lastActiveAt).getTime() : 0
+                  const bTime = b.profile?.lastActiveAt ? new Date(b.profile.lastActiveAt).getTime() : 0
+                  return bTime - aTime
+                })
+                ?.slice(0, 12).map((user) => {
                 const isOwner = user.roles?.some(role => role.name === 'owner')
                 const isAdmin = user.roles?.some(role => role.name === 'admin')
                 const isDeveloper = user.roles?.some(role => role.name === 'developer')
+                const isTrialMod = user.roles?.some(role => role.name === 'trial_mod')
                 
-                // Determine colors based on highest role
                 const getRoleColors = () => {
-                  if (isOwner) {
-                    return {
-                      bg: 'from-brand-600/20 to-brand-700/20',
-                      hover: 'hover:from-brand-600/30 hover:to-brand-700/30',
-                      border: 'border-brand-600/30',
-                      text: 'text-brand-400'
-                    }
-                  } else if (isDeveloper) {
-                    return {
-                      bg: 'from-purple-600/20 to-purple-700/20',
-                      hover: 'hover:from-purple-600/30 hover:to-purple-700/30',
-                      border: 'border-purple-600/30',
-                      text: 'text-purple-400'
-                    }
-                  } else if (isAdmin) {
-                    return {
-                      bg: 'from-brand-600/20 to-brand-700/20',
-                      hover: 'hover:from-brand-600/30 hover:to-brand-700/30',
-                      border: 'border-brand-600/30',
-                      text: 'text-brand-400'
-                    }
-                  } else if (isTrialMod) {
-                    return {
-                      bg: 'from-blue-600/20 to-blue-700/20',
-                      hover: 'hover:from-blue-600/30 hover:to-blue-700/30',
-                      border: 'border-blue-600/30',
-                      text: 'text-blue-400'
-                    }
-                  } else {
-                    return {
-                      bg: 'from-neutral-800/50 to-neutral-800/50',
-                      hover: 'hover:from-neutral-700/50 hover:to-neutral-700/50',
-                      border: 'border-neutral-700/30',
-                      text: 'text-neutral-400'
-                    }
-                  }
+                  if (isOwner) return { bg: 'from-red-900/20 to-red-800/20', hover: 'hover:from-red-800/30 hover:to-red-700/30', border: 'border-red-700/50', text: 'text-red-400' }
+                  if (isAdmin) return { bg: 'from-purple-900/20 to-purple-800/20', hover: 'hover:from-purple-800/30 hover:to-purple-700/30', border: 'border-purple-700/50', text: 'text-purple-400' }
+                  if (isDeveloper) return { bg: 'from-blue-900/20 to-blue-800/20', hover: 'hover:from-blue-800/30 hover:to-blue-700/30', border: 'border-blue-700/50', text: 'text-blue-400' }
+                  if (isTrialMod) return { bg: 'from-orange-900/20 to-orange-800/20', hover: 'hover:from-orange-800/30 hover:to-orange-700/30', border: 'border-orange-700/50', text: 'text-orange-400' }
+                  return { bg: 'from-neutral-800/20 to-neutral-700/20', hover: 'hover:from-neutral-700/30 hover:to-neutral-600/30', border: 'border-neutral-600/50', text: 'text-neutral-400' }
                 }
 
                 const colors = getRoleColors()
                 const hasStaffRole = isOwner || isAdmin || isDeveloper || isTrialMod
 
                 return (
-                  <Link key={user.id} href={`/members/${user.uid}`} className="group">
-                    <div className={`${hasStaffRole ? `bg-gradient-to-br ${colors.bg} ${colors.hover} border ${colors.border}` : 'bg-neutral-800/50 hover:bg-neutral-700/50'} rounded-lg p-4 transition-colors`}>
+                  <div key={user.id} className={`group block ${hasStaffRole ? `bg-gradient-to-br ${colors.bg} ${colors.hover} border ${colors.border}` : 'bg-neutral-800/50 hover:bg-neutral-700/50'} rounded-lg p-4 transition-colors`}>
+                    <Link href={`/members/${user.uid}`} className="block">
                       <div className="relative w-12 h-12 mx-auto mb-2">
                         <Image
                           src={user.image || '/placeholder.png'}
@@ -274,8 +258,8 @@ export default async function MembersPage() {
                           </a>
                         )}
                       </div>
-                    </div>
-                  </Link>
+                    </Link>
+                  </div>
                 )
               })}
             </div>
@@ -292,27 +276,29 @@ export default async function MembersPage() {
             </h3>
             <div className="space-y-3">
               {stats.mostRatedDetails.map((user, index) => (
-                <Link key={user.id} href={`/members/${user.uid}`} className="flex items-center gap-3 p-3 rounded-lg hover:bg-neutral-800/50 transition-colors">
-                  <div className="w-8 h-8 bg-brand-600 rounded-full flex items-center justify-center text-white font-bold text-sm">
-                    {index + 1}
-                  </div>
-                  <div className="relative w-10 h-10">
-                    <Image
-                      src={user.image || '/placeholder.png'}
-                      alt={user.name || 'User'}
-                      fill
-                      className="object-cover rounded-full"
-                    />
-                  </div>
-                  <div className="flex-1">
-                    <div className="text-white font-medium">{user.name}</div>
-                    <div className="text-sm text-neutral-400">UID: {user.uid}</div>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-xs text-neutral-400">Ratings</div>
-                    <div className="text-sm text-white font-bold">{user.ratingCount}</div>
-                  </div>
-                </Link>
+                <div key={user.id} className="flex items-center gap-3 p-3 rounded-lg hover:bg-neutral-800/50 transition-colors">
+                  <Link href={`/members/${user.uid}`} className="flex items-center gap-3 w-full">
+                    <span className="w-8 h-8 bg-brand-600 rounded-full flex items-center justify-center text-white font-bold text-sm">
+                      {index + 1}
+                    </span>
+                    <div className="relative w-10 h-10">
+                      <Image
+                        src={user.image || '/placeholder.png'}
+                        alt={user.name || 'User'}
+                        fill
+                        className="object-cover rounded-full"
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <div className="text-white font-medium">{user.name}</div>
+                      <div className="text-sm text-neutral-400">UID: {user.uid}</div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-xs text-neutral-400">Ratings</div>
+                      <div className="text-sm text-white font-bold">{user.ratingCount}</div>
+                    </div>
+                  </Link>
+                </div>
               ))}
             </div>
           </div>
@@ -325,129 +311,207 @@ export default async function MembersPage() {
             </h3>
             <div className="space-y-3">
               {stats.mostActiveUsers.slice(0, 5).map((user, index) => (
-                <Link key={user.id} href={`/members/${user.uid}`} className="flex items-center gap-3 p-3 rounded-lg hover:bg-neutral-800/50 transition-colors">
-                  <div className="w-8 h-8 bg-brand-600 rounded-full flex items-center justify-center text-white font-bold text-sm">
-                    {index + 1}
-                  </div>
-                  <div className="relative w-10 h-10">
-                    <Image
-                      src={user.image || '/placeholder.png'}
-                      alt={user.name || 'User'}
-                      fill
-                      className="object-cover rounded-full"
-                    />
-                  </div>
-                  <div className="flex-1">
-                    <div className="text-white font-medium">{user.name}</div>
-                    <div className="text-sm text-neutral-400">UID: {user.uid}</div>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-xs text-neutral-400">Last active</div>
-                    <div className="text-sm text-white">
-                      {user.profile?.lastActiveAt ? formatLastActive(user.profile.lastActiveAt) : '—'}
+                <div key={user.id} className="flex items-center gap-3 p-3 rounded-lg hover:bg-neutral-800/50 transition-colors">
+                  <Link href={`/members/${user.uid}`} className="flex items-center gap-3 w-full">
+                    <span className="w-8 h-8 bg-brand-600 rounded-full flex items-center justify-center text-white font-bold text-sm">
+                      {index + 1}
+                    </span>
+                    <div className="relative w-10 h-10">
+                      <Image
+                        src={user.image || '/placeholder.png'}
+                        alt={user.name || 'User'}
+                        fill
+                        className="object-cover rounded-full"
+                      />
                     </div>
-                    {user.profile?.lastWatchingTitle && (
-                      <div className="text-xs text-brand-400 mt-1">
-                        Watching: {user.profile.lastWatchingTitle}
+                    <div className="flex-1">
+                      <div className="text-white font-medium">{user.name}</div>
+                      <div className="text-sm text-neutral-400">UID: {user.uid}</div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-xs text-neutral-400">Last active</div>
+                      <div className="text-sm text-white">
+                        {user.profile?.lastActiveAt ? formatLastActive(user.profile.lastActiveAt) : '—'}
                       </div>
-                    )}
-                  </div>
-                </Link>
+                      {user.profile?.lastWatchingTitle && (
+                        <div className="text-xs text-brand-400 mt-1">
+                          Watching: {user.profile.lastWatchingTitle}
+                        </div>
+                      )}
+                    </div>
+                  </Link>
+                </div>
               ))}
             </div>
           </div>
         </div>
 
-        {/* Staff Section */}
-        <div className="bg-neutral-900/50 backdrop-blur-sm rounded-xl border border-neutral-700/50 p-6">
-          <h3 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
-            <span className="text-brand-400">👑</span>
-            Staff Members
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {stats.staffMembers.map((user) => {
-              const isTrialMod = user.roles.some(role => role.name === 'trial_mod')
-              const isOwner = user.roles.some(role => role.name === 'owner')
-              const isAdmin = user.roles.some(role => role.name === 'admin')
-              
-              // Determine colors based on highest role
-              const getRoleColors = () => {
-                if (isOwner || isAdmin) {
-                  return {
-                    bg: 'from-brand-600/20 to-brand-700/20',
-                    hover: 'hover:from-brand-600/30 hover:to-brand-700/30',
-                    border: 'border-brand-600/30',
-                    text: 'text-brand-400'
+        {/* Staff Members */}
+        <div className="mb-8">
+          <div className="bg-neutral-900/50 backdrop-blur-sm rounded-xl border border-neutral-700/50 p-6">
+            <h2 className="text-2xl font-semibold text-white mb-4 flex items-center gap-2">
+              <span className="text-brand-400">👑</span>
+              Staff Members
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {stats.staffMembers
+                .sort((a, b) => {
+                  // Sort by role priority first
+                  const getRolePriority = (user: any) => {
+                    if (user.roles?.some((role: any) => role.name === 'owner')) return 0
+                    if (user.roles?.some((role: any) => role.name === 'admin')) return 1
+                    if (user.roles?.some((role: any) => role.name === 'developer')) return 2
+                    if (user.roles?.some((role: any) => role.name === 'trial_mod')) return 3
+                    return 4
                   }
-                } else if (isTrialMod) {
-                  return {
-                    bg: 'from-blue-600/20 to-blue-700/20',
-                    hover: 'hover:from-blue-600/30 hover:to-blue-700/30',
-                    border: 'border-blue-600/30',
-                    text: 'text-blue-400'
+                  
+                  const aPriority = getRolePriority(a)
+                  const bPriority = getRolePriority(b)
+                  
+                  if (aPriority !== bPriority) {
+                    return aPriority - bPriority
                   }
-                } else {
-                  return {
-                    bg: 'from-brand-600/20 to-brand-700/20',
-                    hover: 'hover:from-brand-600/30 hover:to-brand-700/30',
-                    border: 'border-brand-600/30',
-                    text: 'text-brand-400'
-                  }
+                  
+                  // Then by creation date (oldest first)
+                  return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+                })
+                .map((user) => {
+                const isOwner = user.roles?.some(role => role.name === 'owner')
+                const isAdmin = user.roles?.some(role => role.name === 'admin')
+                const isDeveloper = user.roles?.some(role => role.name === 'developer')
+                const isTrialMod = user.roles?.some(role => role.name === 'trial_mod')
+                
+                const getRoleColors = () => {
+                  if (isOwner) return { bg: 'from-red-900/20 to-red-800/20', hover: 'hover:from-red-800/30 hover:to-red-700/30', border: 'border-red-700/50', text: 'text-red-400' }
+                  if (isAdmin) return { bg: 'from-purple-900/20 to-purple-800/20', hover: 'hover:from-purple-800/30 hover:to-purple-700/30', border: 'border-purple-700/50', text: 'text-purple-400' }
+                  if (isDeveloper) return { bg: 'from-blue-900/20 to-blue-800/20', hover: 'hover:from-blue-800/30 hover:to-blue-700/30', border: 'border-blue-700/50', text: 'text-blue-400' }
+                  if (isTrialMod) return { bg: 'from-orange-900/20 to-orange-800/20', hover: 'hover:from-orange-800/30 hover:to-orange-700/30', border: 'border-orange-700/50', text: 'text-orange-400' }
+                  return { bg: 'from-neutral-800/20 to-neutral-700/20', hover: 'hover:from-neutral-700/30 hover:to-neutral-600/30', border: 'border-neutral-600/50', text: 'text-neutral-400' }
                 }
-              }
-              
-              const colors = getRoleColors()
-              
-              return (
-                <Link key={user.id} href={`/members/${user.uid}`} className="group">
-                  <div className={`bg-gradient-to-br ${colors.bg} rounded-lg p-4 ${colors.hover} transition-colors border ${colors.border}`}>
-                    <div className="flex items-center gap-3 mb-3">
-                      <div className="relative w-12 h-12">
-                        <Image
-                          src={user.image || '/placeholder.png'}
-                          alt={user.name || 'User'}
-                          fill
-                          className="object-cover rounded-full"
-                        />
-                      </div>
-                      <div>
-                        <div className="text-white font-medium">{user.name}</div>
-                        <div className={`text-sm ${colors.text}`}>
-                          {user.roles.map(role => {
-                            const roleName = role.name === 'trial_mod' ? 'Trial Mod' : role.name.charAt(0).toUpperCase() + role.name.slice(1)
-                            return roleName
-                          }).join(', ')}
+                
+                const colors = getRoleColors()
+                
+                return (
+                  <div key={user.id} className={`group block bg-gradient-to-br ${colors.bg} rounded-lg p-4 ${colors.hover} transition-colors border ${colors.border}`}>
+                    <Link href={`/members/${user.uid}`} className="block">
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="relative w-12 h-12">
+                          <Image
+                            src={user.image || '/placeholder.png'}
+                            alt={user.name || 'User'}
+                            fill
+                            className="object-cover rounded-full"
+                          />
+                        </div>
+                        <div>
+                          <div className="text-white font-medium">{user.name}</div>
+                          <div className={`text-sm ${colors.text}`}>
+                            {user.roles.map(role => {
+                              const roleName = role.name === 'trial_mod' ? 'Trial Mod' : role.name.charAt(0).toUpperCase() + role.name.slice(1)
+                              return roleName
+                            }).join(', ')}
+                          </div>
                         </div>
                       </div>
+                      <div className="text-xs text-neutral-400">
+                        UID: {user.uid} • Last active: {user.profile?.lastActiveAt ? formatLastActive(user.profile.lastActiveAt) : '—'}
+                      </div>
+                    </Link>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        </div>
+
+        {/* Recent Searches Section */}
+        <div className="mb-8">
+          <div className="bg-neutral-900/50 backdrop-blur-sm rounded-xl border border-neutral-700/50 p-6">
+            <h2 className="text-2xl font-semibold text-white mb-4 flex items-center gap-2">
+              <span className="text-brand-400">🔍</span>
+              Recent Searches ({stats.recentSearches?.length || 0})
+            </h2>
+            <div className="space-y-3">
+              {stats.recentSearches?.slice(0, 10).map((search) => (
+                <div key={search.id} className="flex items-center justify-between p-3 bg-neutral-800/50 rounded-lg border border-neutral-700/30">
+                  <div className="flex items-center gap-3">
+                    <div className="relative w-8 h-8">
+                      <Image
+                        src={search.user.image || '/placeholder.png'}
+                        alt={search.user.name || 'User'}
+                        fill
+                        className="object-cover rounded-full"
+                      />
                     </div>
-                    <div className="text-xs text-neutral-400">
-                      UID: {user.uid} • Last active: {user.profile?.lastActiveAt ? formatLastActive(user.profile.lastActiveAt) : '—'}
+                    <div>
+                      <div className="text-white font-medium">{search.user.name}</div>
+                      <div className="text-sm text-neutral-400">searched for</div>
                     </div>
                   </div>
-                </Link>
-              )
-            })}
+                  <div className="text-right">
+                    <div className="text-white font-medium">"{search.query}"</div>
+                    <div className="text-xs text-neutral-400">
+                      {search.results} results • {formatSearchTime(search.createdAt)}
+                    </div>
+                  </div>
+                </div>
+              ))}
+              {(!stats.recentSearches || stats.recentSearches.length === 0) && (
+                <div className="text-neutral-400 text-center py-8">No recent searches yet</div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Popular Search Terms Section */}
+        <div className="mb-8">
+          <div className="bg-neutral-900/50 backdrop-blur-sm rounded-xl border border-neutral-700/50 p-6">
+            <h2 className="text-2xl font-semibold text-white mb-4 flex items-center gap-2">
+              <span className="text-brand-400">🔥</span>
+              Popular Search Terms
+            </h2>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+              {stats.popularSearches?.map((search, index) => (
+                <div key={search.query} className="bg-neutral-800/50 rounded-lg p-3 border border-neutral-700/30 hover:bg-neutral-700/50 transition-colors">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-xs text-neutral-400">#{index + 1}</span>
+                    <span className="text-xs text-brand-400">{search._count.query} searches</span>
+                  </div>
+                  <div className="text-white font-medium text-sm truncate" title={search.query}>
+                    "{search.query}"
+                  </div>
+                </div>
+              ))}
+              {(!stats.popularSearches || stats.popularSearches.length === 0) && (
+                <div className="col-span-full text-neutral-400 text-center py-8">No popular searches yet</div>
+              )}
+            </div>
           </div>
         </div>
 
         {/* Future Stats Placeholders */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
           <div className="bg-neutral-900/50 backdrop-blur-sm rounded-xl border border-neutral-700/50 p-6">
-            <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-              <span className="text-brand-400">🎬</span>
-              Longest Time Watching Movies
+            <h3 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
+              <span className="text-brand-400">📊</span>
+              Coming Soon
             </h3>
-            <div className="text-neutral-400 text-sm">Coming soon with rating system</div>
+            <p className="text-neutral-400">More community statistics will be added here</p>
           </div>
-
           <div className="bg-neutral-900/50 backdrop-blur-sm rounded-xl border border-neutral-700/50 p-6">
-            <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-              <span className="text-brand-400">📺</span>
-              Longest Time Watching TV Shows
+            <h3 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
+              <span className="text-brand-400">🏆</span>
+              Achievements
             </h3>
-            <div className="text-neutral-400 text-sm">Coming soon with rating system</div>
+            <p className="text-neutral-400">User achievements and badges coming soon</p>
           </div>
-
+          <div className="bg-neutral-900/50 backdrop-blur-sm rounded-xl border border-neutral-700/50 p-6">
+            <h3 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
+              <span className="text-brand-400">📈</span>
+              Analytics
+            </h3>
+            <p className="text-neutral-400">Detailed community analytics coming soon</p>
+          </div>
         </div>
       </div>
     </main>

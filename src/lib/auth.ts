@@ -5,6 +5,22 @@ import { PrismaClient } from '@prisma/client'
 const prisma = new PrismaClient()
 
 async function getNextUid(): Promise<number> {
+  // Get all existing UIDs in ascending order
+  const existingUids = await prisma.user.findMany({
+    select: { uid: true },
+    orderBy: { uid: 'asc' }
+  })
+  
+  const uidSet = new Set(existingUids.map(u => u.uid))
+  
+  // Find the first available UID starting from 1
+  for (let i = 1; i <= 1000; i++) { // Reasonable limit
+    if (!uidSet.has(i)) {
+      return i
+    }
+  }
+  
+  // Fallback: if all UIDs 1-1000 are taken, find the highest + 1
   const lastUser = await prisma.user.findFirst({
     orderBy: { uid: 'desc' },
     select: { uid: true }

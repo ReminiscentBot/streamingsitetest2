@@ -1,10 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { tmdbGet } from '@/lib/tmdb'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
+import { PrismaClient } from '@prisma/client'
+
+const prisma = new PrismaClient()
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
   const q = searchParams.get('q')?.trim()
   if (!q) return NextResponse.json({ results: [] })
+  
   try {
     const data = await tmdbGet<any>('/search/multi', {
       query: q,
@@ -22,6 +28,31 @@ export async function GET(req: NextRequest) {
         // Otherwise sort by popularity desc
         return (b.popularity || 0) - (a.popularity || 0)
       })
+    
+    // Track search if user is authenticated
+    const session = await getServerSession(authOptions)
+    if (session?.user?.email) {
+      try {
+        const user = await prisma.user.findUnique({ 
+          where: { email: session.user.email },
+          select: { id: true }
+        })
+        
+        if (user) {
+          await prisma.search.create({
+            data: {
+              userId: user.id,
+              query: q,
+              results: filtered.length
+            }
+          })
+        }
+      } catch (error) {
+        // Don't fail the search if tracking fails
+        console.log('Search tracking error:', error)
+      }
+    }
+    
     return NextResponse.json({ ...data, results: filtered })
   } catch (e: any) {
     return NextResponse.json({ error: 'tmdb_error' }, { status: 502 })

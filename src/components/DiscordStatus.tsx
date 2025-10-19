@@ -13,19 +13,29 @@ interface DiscordStatusData {
 }
 
 export default function DiscordStatus({ userId }: { userId: string }) {
-  const [status, setStatus] = useState<DiscordStatusData | null>(null)
+  const [discordStatus, setDiscordStatus] = useState<DiscordStatusData | null>(null)
+  const [websiteStatus, setWebsiteStatus] = useState<DiscordStatusData | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     async function fetchStatus() {
       try {
-        const res = await fetch('/api/discord/status')
-        if (res.ok) {
-          const data = await res.json()
-          setStatus(data)
+        const [discordRes, websiteRes] = await Promise.all([
+          fetch('/api/discord/status'),
+          fetch('/api/website/status')
+        ])
+        
+        if (discordRes.ok) {
+          const discordData = await discordRes.json()
+          setDiscordStatus(discordData)
+        }
+        
+        if (websiteRes.ok) {
+          const websiteData = await websiteRes.json()
+          setWebsiteStatus(websiteData)
         }
       } catch (error) {
-        console.error('Failed to fetch Discord status:', error)
+        console.error('Failed to fetch status:', error)
       } finally {
         setLoading(false)
       }
@@ -43,7 +53,7 @@ export default function DiscordStatus({ userId }: { userId: string }) {
     )
   }
 
-  if (!status) {
+  if (!discordStatus && !websiteStatus) {
     return (
       <div className="flex items-center gap-2 text-sm text-neutral-400">
         <div className="w-2 h-2 bg-neutral-600 rounded-full"></div>
@@ -73,19 +83,38 @@ export default function DiscordStatus({ userId }: { userId: string }) {
   }
 
   return (
-    <div className="flex items-center gap-2 text-sm">
-      <FontAwesomeIcon 
-        icon={faCircle} 
-        className={`w-2 h-2 ${getStatusColor(status.status)}`}
-      />
-      <span className={getStatusColor(status.status)}>
-        {getStatusText(status.status)}
-      </span>
-      {status.activities.length > 0 && (
-        <span className="text-neutral-400">
-          • {status.activities[0].name}
+    <div className="space-y-2">
+      {/* Discord Status */}
+      <div className="flex items-center gap-2 text-sm">
+        <FontAwesomeIcon 
+          icon={faCircle} 
+          className={`w-2 h-2 ${getStatusColor(discordStatus?.status || 'offline')}`}
+        />
+        <span className={getStatusColor(discordStatus?.status || 'offline')}>
+          Discord: {getStatusText(discordStatus?.status || 'offline')}
         </span>
-      )}
+        {discordStatus?.activities && discordStatus.activities.length > 0 && (
+          <span className="text-neutral-400">
+            • {discordStatus.activities[0].name}
+          </span>
+        )}
+      </div>
+      
+      {/* Website Status */}
+      <div className="flex items-center gap-2 text-sm">
+        <FontAwesomeIcon 
+          icon={faCircle} 
+          className={`w-2 h-2 ${getStatusColor(websiteStatus?.status || 'offline')}`}
+        />
+        <span className={getStatusColor(websiteStatus?.status || 'offline')}>
+          Website: {getStatusText(websiteStatus?.status || 'offline')}
+        </span>
+        {websiteStatus?.activities && websiteStatus.activities.length > 0 && (
+          <span className="text-neutral-400">
+            • {websiteStatus.activities[0].name}
+          </span>
+        )}
+      </div>
     </div>
   )
 }

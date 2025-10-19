@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
+import { PrismaClient } from '@prisma/client'
+
+const prisma = new PrismaClient()
 
 export async function GET(req: NextRequest) {
   const session = await getServerSession(authOptions)
@@ -9,10 +12,7 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    // Get user's presence data to determine real status
-    const { PrismaClient } = await import('@prisma/client')
-    const prisma = new PrismaClient()
-    
+    // Get user's presence data to determine website status
     const user = await prisma.user.findUnique({
       where: { email: session.user.email },
       include: { 
@@ -26,13 +26,13 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }
 
-    // Determine real status based on presence data
+    // Determine website status (more lenient than Discord status)
     let status = 'offline'
     let activity = null
 
-    // Check if user is currently active (within last 2 minutes for Discord - more strict)
-    const twoMinutesAgo = new Date(Date.now() - 2 * 60 * 1000)
-    const isCurrentlyActive = user.profile?.lastActiveAt && new Date(user.profile.lastActiveAt) > twoMinutesAgo
+    // Check if user is currently active (within last 15 minutes for website)
+    const fifteenMinutesAgo = new Date(Date.now() - 15 * 60 * 1000)
+    const isCurrentlyActive = user.profile?.lastActiveAt && new Date(user.profile.lastActiveAt) > fifteenMinutesAgo
 
     if (isCurrentlyActive) {
       status = 'online'
@@ -66,7 +66,7 @@ export async function GET(req: NextRequest) {
     await prisma.$disconnect()
     return NextResponse.json(result)
   } catch (error) {
-    console.error('Error fetching Discord status:', error)
+    console.error('Error fetching website status:', error)
     return NextResponse.json({ error: 'Failed to fetch status' }, { status: 500 })
   }
 }

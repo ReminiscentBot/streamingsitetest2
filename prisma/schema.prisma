@@ -26,6 +26,7 @@ model User {
   commentLikes     CommentLike[]
   presence         Presence?
   profileViews     ProfileView[]
+  searches         Search[]
 }
 
 model Watchlist {
@@ -57,6 +58,7 @@ model Profile {
   lastWatchingEpisode Int?
   lastWatchingTitle  String?
   lastWatchingPoster String?
+  lastWatchingTmdbId Int?
   
   // Premium/VIP Customization
   profileLayout     String?   @default("default") // 'default' | 'compact' | 'minimal' | 'detailed'
@@ -170,6 +172,18 @@ model Rating {
   @@unique([userId, tmdbId, type], name: "user_tmdb_type")
   @@index([tmdbId, type])
   @@index([rating])
+}
+
+model Search {
+  id        String   @id @default(cuid())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  query     String
+  results   Int      // Number of results returned
+  createdAt DateTime @default(now())
+  
+  @@index([userId, createdAt])
+  @@index([query])
 }
 
 
