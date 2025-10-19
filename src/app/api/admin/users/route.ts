@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    // Check if current user has admin permissions
+    // Check if user is admin
     const user = await prisma.user.findUnique({
       where: { email: session.user.email },
       include: { roles: true }
@@ -22,54 +22,32 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }
 
-    const hasPermission = user.roles.some(r => 
-      ['owner', 'developer', 'admin', 'moderator'].includes(r.name)
-    )
-
-    if (!hasPermission) {
-      return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 })
+    const isAdmin = user.roles.some(role => ['owner', 'admin', 'developer'].includes(role.name))
+    if (!isAdmin) {
+      return NextResponse.json({ error: 'Not authorized' }, { status: 403 })
     }
 
     // Get all users with their roles
     const users = await prisma.user.findMany({
-      include: {
-        roles: true
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        uid: true,
+        image: true,
+        createdAt: true,
+        roles: {
+          select: {
+            name: true
+          }
+        }
       },
-      orderBy: { createdAt: 'desc' }
+      orderBy: {
+        createdAt: 'asc'
+      }
     })
 
-    // Get ban status for each user
-    const usersWithBans = await Promise.all(
-      users.map(async (user) => {
-        const activeBans = await prisma.ban.findMany({
-          where: {
-            userId: user.id,
-            OR: [
-              { bannedUntil: null },
-              { bannedUntil: { gt: new Date() } }
-            ]
-          }
-        })
-
-        return {
-          id: user.id,
-          uid: user.uid,
-          name: user.name,
-          email: user.email,
-          image: user.image,
-          createdAt: user.createdAt,
-          roles: user.roles.map(r => r.name),
-          isBanned: activeBans.length > 0,
-          banReason: activeBans[0]?.reason || null,
-          banExpiry: activeBans[0]?.bannedUntil || null
-        }
-      })
-    )
-
-    // Format user data
-    const formattedUsers = usersWithBans
-
-    return NextResponse.json({ users: formattedUsers })
+    return NextResponse.json({ users })
   } catch (error) {
     console.error('Error fetching users:', error)
     return NextResponse.json({ error: 'Failed to fetch users' }, { status: 500 })
