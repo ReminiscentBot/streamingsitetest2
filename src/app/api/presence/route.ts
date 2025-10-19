@@ -7,10 +7,7 @@ const prisma = new PrismaClient()
 
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions)
-  if (!session?.user?.email) {
-    console.log('Presence API: No session found, returning 401')
-    return NextResponse.json({ ok: false }, { status: 401 })
-  }
+  if (!session?.user?.email) return NextResponse.json({ ok: false }, { status: 401 })
   
   const body = await req.json().catch(() => ({}))
   const { currentPage, pageType, mediaType } = body
