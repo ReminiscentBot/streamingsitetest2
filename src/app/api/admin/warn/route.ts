@@ -5,6 +5,31 @@ import { PrismaClient } from '@prisma/client'
 
 const prisma = new PrismaClient()
 
+// Role hierarchy helper functions
+function getRoleLevel(role: string): number {
+  const levels = {
+    'owner': 5,
+    'developer': 4,
+    'admin': 3,
+    'moderator': 2,
+    'trial_mod': 1,
+    'premium': 0,
+    'vip': 0,
+    'user': 0
+  }
+  return levels[role as keyof typeof levels] || 0
+}
+
+function getHighestRole(roles: any[]): string {
+  if (!roles || roles.length === 0) return 'user'
+  
+  const roleLevels = roles.map(r => ({ name: r.name, level: getRoleLevel(r.name) }))
+  const highest = roleLevels.reduce((prev, current) => 
+    prev.level > current.level ? prev : current
+  )
+  return highest.name
+}
+
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions)
   if (!session?.user?.email) {
@@ -35,6 +60,32 @@ export async function POST(req: NextRequest) {
 
     if (!hasPermission) {
       return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 })
+    }
+
+    // Get target user to check their role
+    const targetUser = await prisma.user.findUnique({
+      where: { id: userId },
+      include: { roles: true }
+    })
+
+    if (!targetUser) {
+      return NextResponse.json({ error: 'Target user not found' }, { status: 404 })
+    }
+
+    // Prevent warning the owner
+    const isTargetOwner = targetUser.roles.some(r => r.name === 'owner')
+    if (isTargetOwner) {
+      return NextResponse.json({ error: 'Cannot warn the owner' }, { status: 403 })
+    }
+
+    // Role hierarchy: can't warn users with equal or higher roles
+    const currentUserRole = getHighestRole(user.roles)
+    const targetUserRole = getHighestRole(targetUser.roles)
+    
+    if (getRoleLevel(targetUserRole) >= getRoleLevel(currentUserRole)) {
+      return NextResponse.json({ 
+        error: `Cannot warn users with ${targetUserRole} role or higher` 
+      }, { status: 403 })
     }
 
     // Create warning record (you might want to add a Warning model to your schema)

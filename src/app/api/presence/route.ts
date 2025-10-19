@@ -27,8 +27,21 @@ export async function POST(req: NextRequest) {
     },
     create: { 
       userId: user.id,
-      currentPage: currentPage || null
+      currentPage: currentPage || null,
+      updatedAt: new Date()
     },
+  })
+  
+  // Also update the user's profile lastActiveAt
+  await prisma.profile.upsert({
+    where: { userId: user.id },
+    update: {
+      lastActiveAt: new Date()
+    },
+    create: {
+      userId: user.id,
+      lastActiveAt: new Date()
+    }
   })
   return NextResponse.json({ ok: true })
 }

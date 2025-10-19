@@ -145,7 +145,14 @@ export default async function MembersPage() {
       <div className="max-w-6xl mx-auto p-6">
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-white mb-2">Members Hub</h1>
-          <p className="text-neutral-400">Discover the community and see who's online</p>
+          <p className="text-neutral-400 mb-4">Discover the community and see who's online</p>
+          <Link 
+            href="/browsing"
+            className="inline-flex items-center gap-2 px-6 py-3 bg-brand-600 hover:bg-brand-700 text-white font-medium rounded-lg transition-colors"
+          >
+            <span>🌐</span>
+            See Who's Currently Browsing
+          </Link>
         </div>
 
         {/* Online Now Section */}
@@ -253,6 +260,11 @@ export default async function MembersPage() {
                     <div className="text-sm text-white">
                       {user.profile?.lastActiveAt ? formatLastActive(user.profile.lastActiveAt) : '—'}
                     </div>
+                    {user.profile?.lastWatchingTitle && (
+                      <div className="text-xs text-brand-400 mt-1">
+                        Watching: {user.profile.lastWatchingTitle}
+                      </div>
+                    )}
                   </div>
                 </Link>
               ))}
@@ -313,13 +325,6 @@ export default async function MembersPage() {
             <div className="text-neutral-400 text-sm">Coming soon with rating system</div>
           </div>
 
-          <div className="bg-neutral-900/50 backdrop-blur-sm rounded-xl border border-neutral-700/50 p-6">
-            <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-              <span className="text-brand-400">🎌</span>
-              Longest Time Watching Anime
-            </h3>
-            <div className="text-neutral-400 text-sm">Coming soon with rating system</div>
-          </div>
         </div>
       </div>
     </main>

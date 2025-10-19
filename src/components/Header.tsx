@@ -2,12 +2,14 @@
 import Link from 'next/link'
 import { signIn, signOut, useSession } from 'next-auth/react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faClapperboard, faRightToBracket, faRightFromBracket, faCog, faUser, faChevronDown, faCrown, faPalette } from '@fortawesome/free-solid-svg-icons'
+import { faClapperboard, faRightToBracket, faRightFromBracket, faCog, faUser, faChevronDown, faCrown, faPalette, faFilm, faTv } from '@fortawesome/free-solid-svg-icons'
 import { useState, useRef, useEffect } from 'react'
 import Image from 'next/image'
+import { usePathname } from 'next/navigation'
 
 export default function Header() {
   const { data: session, status } = useSession()
+  const pathname = usePathname()
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const [isAdmin, setIsAdmin] = useState(false)
   const [isOwner, setIsOwner] = useState(false)
@@ -64,8 +66,55 @@ export default function Header() {
           <FontAwesomeIcon icon={faClapperboard} />
           <span className="font-semibold">Reminiscent</span>
         </Link>
-        <nav className="flex items-center gap-4">
-          <Link href="/members" className="btn">Members</Link>
+        <nav className="flex items-center gap-2">
+          <Link 
+            href="/" 
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-200 ${
+              pathname === '/' 
+                ? 'bg-brand-600/20 text-brand-400 border border-brand-500/30' 
+                : 'text-neutral-400 hover:text-white hover:bg-neutral-800/50'
+            }`}
+          >
+            <FontAwesomeIcon icon={faClapperboard} className="w-4 h-4" />
+            <span className="hidden sm:inline">Home</span>
+          </Link>
+          
+          <Link 
+            href="/movies" 
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-200 ${
+              pathname === '/movies' 
+                ? 'bg-brand-600/20 text-brand-400 border border-brand-500/30' 
+                : 'text-neutral-400 hover:text-white hover:bg-neutral-800/50'
+            }`}
+          >
+            <FontAwesomeIcon icon={faFilm} className="w-4 h-4" />
+            <span className="hidden sm:inline">Movies</span>
+          </Link>
+          
+          <Link 
+            href="/tv" 
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-200 ${
+              pathname === '/tv' 
+                ? 'bg-brand-600/20 text-brand-400 border border-brand-500/30' 
+                : 'text-neutral-400 hover:text-white hover:bg-neutral-800/50'
+            }`}
+          >
+            <FontAwesomeIcon icon={faTv} className="w-4 h-4" />
+            <span className="hidden sm:inline">TV Shows</span>
+          </Link>
+          
+          
+          <Link 
+            href="/members" 
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-200 ${
+              pathname === '/members' 
+                ? 'bg-brand-600/20 text-brand-400 border border-brand-500/30' 
+                : 'text-neutral-400 hover:text-white hover:bg-neutral-800/50'
+            }`}
+          >
+            <FontAwesomeIcon icon={faUser} className="w-4 h-4" />
+            <span className="hidden sm:inline">Members</span>
+          </Link>
           {status === 'authenticated' ? (
             <div className="relative" ref={dropdownRef}>
               <button

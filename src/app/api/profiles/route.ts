@@ -9,6 +9,11 @@ export async function GET(req: NextRequest) {
   const key = new URL(req.url).searchParams.get('uid')
   if (!key) return NextResponse.json({ error: 'uid required' }, { status: 400 })
 
+  // Get current session for profile view tracking
+  const session = await getServerSession(authOptions)
+  const currentUserId = session?.user?.email ? 
+    (await prisma.user.findUnique({ where: { email: session.user.email } }))?.id : null
+
   // Resolve to internal user id from either numeric uid, email, or direct userId
   let user = null as any
   // Try numeric uid
@@ -26,6 +31,21 @@ export async function GET(req: NextRequest) {
 
   const profile = user ? await prisma.profile.findUnique({ where: { userId: user.id } }) : null
   const presence = user ? await prisma.presence.findUnique({ where: { userId: user.id } }) : null
+  
+  // Track profile view if user is authenticated and viewing someone else's profile
+  if (currentUserId && user && currentUserId !== user.id && profile) {
+    try {
+      await prisma.profileView.create({
+        data: {
+          profileId: profile.id,
+          viewerId: currentUserId
+        }
+      })
+    } catch (error) {
+      // Ignore duplicate view errors
+      console.log('Profile view already tracked or error:', error)
+    }
+  }
   
   // If user is viewing a profile, fetch that profile's info
   let viewedProfile = null

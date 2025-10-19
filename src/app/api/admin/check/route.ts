@@ -12,8 +12,12 @@ export async function GET(req: NextRequest) {
   }
 
   try {
+    const { searchParams } = new URL(req.url)
+    const targetUserId = searchParams.get('userId')
+    
+    // If userId is provided, check that user's roles, otherwise check current user
     const user = await prisma.user.findUnique({
-      where: { email: session.user.email },
+      where: targetUserId ? { id: targetUserId } : { email: session.user.email },
       include: { roles: true }
     })
 

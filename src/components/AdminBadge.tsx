@@ -19,7 +19,7 @@ export default function AdminBadge({ userId }: { userId: string }) {
   useEffect(() => {
     async function fetchAdminStatus() {
       try {
-        const res = await fetch('/api/admin/check')
+        const res = await fetch(`/api/admin/check?userId=${userId}`)
         if (res.ok) {
           const data = await res.json()
           setAdminData(data)
@@ -32,7 +32,7 @@ export default function AdminBadge({ userId }: { userId: string }) {
     }
 
     fetchAdminStatus()
-  }, [])
+  }, [userId])
 
   if (loading || !adminData) {
     return null
