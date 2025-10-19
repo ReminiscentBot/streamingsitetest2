@@ -249,12 +249,12 @@ export default async function MembersPage() {
                             }).join(', ')}
                           </div>
                         )}
-                        {user.currentPage && (
+                        {user.presence?.currentPage && (
                           <a 
-                            href={`/${user.currentPage.toLowerCase()}`}
+                            href={`/${user.presence.currentPage.toLowerCase()}`}
                             className="text-xs text-brand-400 mt-1 truncate hover:text-brand-300 hover:underline cursor-pointer block"
                           >
-                            {user.currentPage}
+                            {user.presence.currentPage}
                           </a>
                         )}
                       </div>
