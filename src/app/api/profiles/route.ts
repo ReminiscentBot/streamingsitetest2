@@ -29,8 +29,13 @@ export async function GET(req: NextRequest) {
     user = await prisma.user.findFirst({ where: { id: key } })
   }
 
-  const profile = user ? await prisma.profile.findUnique({ where: { userId: user.id } }) : null
-  const presence = user ? await prisma.presence.findUnique({ where: { userId: user.id } }) : null
+  // If no user found, return 404
+  if (!user) {
+    return NextResponse.json({ error: 'User not found' }, { status: 404 })
+  }
+
+  const profile = await prisma.profile.findUnique({ where: { userId: user.id } })
+  const presence = await prisma.presence.findUnique({ where: { userId: user.id } })
   
   // Track profile view if user is authenticated and viewing someone else's profile
   if (currentUserId && user && currentUserId !== user.id && profile) {

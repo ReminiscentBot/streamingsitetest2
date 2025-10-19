@@ -66,13 +66,34 @@ export default function UserProfile({ params }: { params: { uid: string } }) {
 
   if (error || !data) {
     return (
-      <div className="min-h-screen bg-neutral-900 flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-white mb-4">Profile Not Found</h1>
-          <p className="text-neutral-400 mb-4">The user you're looking for doesn't exist.</p>
-          <div className="text-sm text-neutral-500">
-            This might be because the database was recently reset. 
-            <br />Please make sure the user has signed in to create their account.
+      <div className="min-h-screen bg-gradient-to-br from-neutral-900 via-neutral-800 to-neutral-900 flex items-center justify-center">
+        <div className="text-center max-w-md mx-auto p-8">
+          <div className="text-6xl mb-6">👤</div>
+          <h1 className="text-3xl font-bold text-white mb-4">User Not Found</h1>
+          <p className="text-neutral-400 mb-6">
+            The user with UID <span className="font-mono bg-neutral-800 px-2 py-1 rounded">{params.uid}</span> doesn't exist.
+          </p>
+          <div className="text-sm text-neutral-500 mb-8">
+            This might be because:
+            <ul className="text-left mt-2 space-y-1">
+              <li>• The user hasn't signed in yet</li>
+              <li>• The UID was recently reset</li>
+              <li>• The user account was deleted</li>
+            </ul>
+          </div>
+          <div className="flex gap-4 justify-center">
+            <button
+              onClick={() => window.history.back()}
+              className="px-6 py-3 bg-neutral-700 hover:bg-neutral-600 text-white rounded-lg transition-colors"
+            >
+              Go Back
+            </button>
+            <a
+              href="/members"
+              className="px-6 py-3 bg-brand-600 hover:bg-brand-700 text-white rounded-lg transition-colors"
+            >
+              Browse Members
+            </a>
           </div>
         </div>
       </div>
