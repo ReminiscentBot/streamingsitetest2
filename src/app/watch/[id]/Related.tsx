@@ -6,14 +6,14 @@ import { getPosterUrl } from '@/lib/images'
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json())
 
-export default function Recommendations({ id, type }: { id: string; type: 'movie' | 'tv' }) {
-  const { data, error } = useSWR(`/api/tmdb/recommendations?id=${id}&type=${type}`, fetcher)
+export default function Related({ id, type }: { id: string; type: 'movie' | 'tv' }) {
+  const { data, error } = useSWR(`/api/tmdb/related?id=${id}&type=${type}`, fetcher)
   
   if (error) {
     return (
       <div className="bg-neutral-900/70 border border-neutral-800 rounded-lg p-4">
-        <h3 className="text-white font-semibold mb-3">> RECOMMENDATIONS</h3>
-        <div className="text-neutral-400 text-sm">Failed to load recommendations</div>
+        <h3 className="text-white font-semibold mb-3">> RELATED</h3>
+        <div className="text-neutral-400 text-sm">Failed to load related content</div>
       </div>
     )
   }
@@ -21,8 +21,8 @@ export default function Recommendations({ id, type }: { id: string; type: 'movie
   if (!data) {
     return (
       <div className="bg-neutral-900/70 border border-neutral-800 rounded-lg p-4">
-        <h3 className="text-white font-semibold mb-3">> RECOMMENDATIONS</h3>
-        <div className="text-neutral-400 text-sm">Loading recommendations...</div>
+        <h3 className="text-white font-semibold mb-3">> RELATED</h3>
+        <div className="text-neutral-400 text-sm">Loading related content...</div>
       </div>
     )
   }
@@ -32,15 +32,15 @@ export default function Recommendations({ id, type }: { id: string; type: 'movie
   if (!items.length) {
     return (
       <div className="bg-neutral-900/70 border border-neutral-800 rounded-lg p-4">
-        <h3 className="text-white font-semibold mb-3">> RECOMMENDATIONS</h3>
-        <div className="text-neutral-400 text-sm">No recommendations found</div>
+        <h3 className="text-white font-semibold mb-3">> RELATED</h3>
+        <div className="text-neutral-400 text-sm">No related content found</div>
       </div>
     )
   }
 
   return (
     <div className="bg-neutral-900/70 border border-neutral-800 rounded-lg p-4">
-      <h3 className="text-white font-semibold mb-3">> RECOMMENDATIONS</h3>
+      <h3 className="text-white font-semibold mb-3">> RELATED</h3>
       <div className="space-y-2">
         {items.slice(0, 5).map((item: any) => {
           const isTv = item.media_type === 'tv' || type === 'tv'
@@ -75,5 +75,3 @@ export default function Recommendations({ id, type }: { id: string; type: 'movie
     </div>
   )
 }
-
-

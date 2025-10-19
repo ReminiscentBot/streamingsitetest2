@@ -2,7 +2,7 @@
 import Link from 'next/link'
 import { signIn, signOut, useSession } from 'next-auth/react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faClapperboard, faRightToBracket, faRightFromBracket, faCog, faUser, faChevronDown, faCrown, faPalette, faFilm, faTv } from '@fortawesome/free-solid-svg-icons'
+import { faClapperboard, faRightToBracket, faRightFromBracket, faCog, faUser, faChevronDown, faCrown, faPalette, faFilm, faTv, faSearch } from '@fortawesome/free-solid-svg-icons'
 import { useState, useRef, useEffect } from 'react'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
@@ -60,12 +60,30 @@ export default function Header() {
   }, [])
 
   return (
-    <header className="sticky top-0 z-30 bg-black/60 backdrop-blur border-b border-neutral-900">
+    <header className="sticky top-0 z-30 bg-neutral-900/70 backdrop-blur border-b border-neutral-800">
       <div className="max-w-6xl mx-auto p-4 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2 text-brand-400">
           <FontAwesomeIcon icon={faClapperboard} />
           <span className="font-semibold">Reminiscent</span>
         </Link>
+        
+        {/* Search Bar */}
+        <div className="relative hidden md:block">
+          <FontAwesomeIcon icon={faSearch} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-400" />
+          <input
+            type="text"
+            placeholder="Search"
+            className="bg-neutral-800 border border-neutral-700 rounded-lg pl-10 pr-4 py-2 text-white placeholder-neutral-400 w-64"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                const query = (e.target as HTMLInputElement).value
+                if (query.trim()) {
+                  window.location.href = `/search?q=${encodeURIComponent(query.trim())}`
+                }
+              }
+            }}
+          />
+        </div>
         <nav className="flex items-center gap-2">
           <Link 
             href="/" 

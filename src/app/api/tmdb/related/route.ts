@@ -1,0 +1,37 @@
+import { NextRequest, NextResponse } from 'next/server'
+
+const TMDB_API_KEY = process.env.TMDB_API_KEY
+const TMDB_BASE_URL = 'https://api.themoviedb.org/3'
+
+export async function GET(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url)
+    const id = searchParams.get('id')
+    const type = searchParams.get('type')
+
+    if (!id || !type) {
+      return NextResponse.json({ error: 'Missing required parameters' }, { status: 400 })
+    }
+
+    const endpoint = type === 'tv' ? 'similar' : 'similar'
+    const response = await fetch(
+      `${TMDB_BASE_URL}/${type}/${id}/${endpoint}?api_key=${TMDB_API_KEY}&language=en-US&page=1`
+    )
+
+    if (!response.ok) {
+      throw new Error(`TMDB API error: ${response.status}`)
+    }
+
+    const data = await response.json()
+    
+    return NextResponse.json({
+      results: data.results || [],
+      page: data.page,
+      total_pages: data.total_pages,
+      total_results: data.total_results
+    })
+  } catch (error) {
+    console.error('Error fetching related content:', error)
+    return NextResponse.json({ error: 'Failed to fetch related content' }, { status: 500 })
+  }
+}

@@ -2,7 +2,12 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Recommendations from './Recommendations'
-import RatingStars from '@/components/RatingStars'
+import Related from './Related'
+import EpisodeList from '@/components/EpisodeList'
+import ShowDetails from '@/components/ShowDetails'
+import VideoPlayer from '@/components/VideoPlayer'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faBars, faSearch, faBell, faUser, faTh, faList, faFilter } from '@fortawesome/free-solid-svg-icons'
 
 export default function WatchPage({ params }: { params: { id: string } }) {
   const search = useSearchParams()
@@ -17,10 +22,12 @@ export default function WatchPage({ params }: { params: { id: string } }) {
   const [userInteracted, setUserInteracted] = useState(false)
   const [allApisFailed, setAllApisFailed] = useState(false)
   const [sslError, setSslError] = useState(false)
+  const [blurPlayer, setBlurPlayer] = useState(false)
   const isTv = type === 'tv'
   const keyBase = `${params.id}-${isTv ? 'tv' : 'movie'}`
   const [originalLang, setOriginalLang] = useState<string>('')
   const [mediaData, setMediaData] = useState<any>(null)
+  const [currentEpisodeData, setCurrentEpisodeData] = useState<any>(null)
 
   // Track activity when user starts watching
   const trackActivity = async (title: string, poster: string) => {
@@ -134,6 +141,24 @@ export default function WatchPage({ params }: { params: { id: string } }) {
     }
   }, [mediaData])
 
+  // Fetch current episode data for TV shows
+  useEffect(() => {
+    if (!isTv) return
+    
+    const fetchEpisodeData = async () => {
+      try {
+        const response = await fetch(`/api/tmdb/episodes?id=${params.id}&season=${season}`)
+        const data = await response.json()
+        const currentEp = data.episodes?.find((ep: any) => ep.episode_number === episode)
+        setCurrentEpisodeData(currentEp)
+      } catch (error) {
+        console.error('Failed to fetch episode data:', error)
+      }
+    }
+
+    fetchEpisodeData()
+  }, [isTv, params.id, season, episode])
+
   // Auto-pick best working API: if no MEDIA_DATA received within timeout, try next in order
   useEffect(() => {
     const key = `${params.id}-${isTv ? 'tv' : 'movie'}-${season}-${episode}`
@@ -185,61 +210,173 @@ export default function WatchPage({ params }: { params: { id: string } }) {
       } catch (error) {
         console.error('Failed to report activity:', error)
       }
+
     }
     report()
   }, [params.id, isTv, season, episode])
 
   return (
-    <main className="max-w-6xl mx-auto p-6">
-      <div className="space-y-4">
-        {/* Rating Section */}
-        <div className="bg-neutral-900/50 backdrop-blur-sm rounded-xl border border-neutral-700/50 p-4">
-          <h3 className="text-lg font-semibold text-white mb-3">Rate this {isTv ? 'show' : 'movie'}</h3>
-          <RatingStars 
-            tmdbId={parseInt(params.id)} 
-            type={isTv ? 'tv' : 'movie'} 
-          />
-        </div>
-        <div className="flex items-center gap-3 flex-wrap" onClick={() => setUserInteracted(true)}>
-          <label className="text-sm">Player</label>
-          <select value={apiVersion} onChange={(e) => {
-            setApiVersion(e.target.value as any)
-            setUserInteracted(true) // Disable auto-mode when user manually selects
-          }} className="rounded-md bg-neutral-900 border border-neutral-800 px-3 py-2">
-            <option value="1">API 1 (Multi Server)</option>
-            <option value="2">API 2 (Multi Language)</option>
-            <option value="3">API 3 (Multi Embeds)</option>
-            <option value="4">API 4 (Premium Embeds)</option>
-          </select>
-          <label className="text-sm flex items-center gap-2">
-            <input type="checkbox" checked={autoMode} onChange={(e) => setAutoMode(e.target.checked)} /> Auto
-          </label>
-          {isTv && (
-            <>
-              <label className="text-sm">Season</label>
-              <input type="number" min={1} value={season} onChange={(e) => setSeason(parseInt(e.target.value || '1'))} className="w-24 rounded-md bg-neutral-900 border border-neutral-800 px-3 py-2" />
-              <label className="text-sm">Episode</label>
-              <input type="number" min={1} value={episode} onChange={(e) => setEpisode(parseInt(e.target.value || '1'))} className="w-24 rounded-md bg-neutral-900 border border-neutral-800 px-3 py-2" />
-            </>
-          )}
+    <div className="min-h-screen bg-gradient-to-br from-neutral-900 via-neutral-800 to-neutral-900">
+      <div className="flex">
+        {/* Left Sidebar - Empty for now */}
+        <div className="w-16 bg-neutral-900/70">
+          {/* Empty left column as shown in screenshots */}
         </div>
 
-        {allApisFailed ? (
-          <div className="w-full h-[60vh] rounded-lg border border-neutral-800 bg-neutral-900 flex items-center justify-center flex-col space-y-4">
-            <div className="text-red-400 text-xl">⚠️</div>
-            <div className="text-white text-lg font-semibold">
-              {sslError ? 'SSL Security Error' : 'Stream Not Available'}
+        {/* Main Content Area */}
+        <div className="flex-1 p-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Center Column - Video Player and Show Details */}
+            <div className="lg:col-span-2 space-y-6">
+              {/* Debug Controls - Above Player */}
+              <div className="bg-neutral-900/70 border border-neutral-800 rounded-lg p-4">
+                <div className="flex items-center justify-center gap-3 flex-wrap text-sm">
+                  <label className="text-white">Player</label>
+                  <select 
+                    value={apiVersion} 
+                    onChange={(e) => {
+                      setApiVersion(e.target.value as any)
+                      setUserInteracted(true)
+                    }} 
+                    className="rounded-md bg-neutral-800 border border-neutral-700 px-3 py-1 text-white text-xs"
+                  >
+                    <option value="1">API 1</option>
+                    <option value="2">API 2</option>
+                    <option value="3">API 3</option>
+                    <option value="4">API 4</option>
+                  </select>
+                  <label className="text-white flex items-center gap-1">
+                    <input type="checkbox" checked={autoMode} onChange={(e) => setAutoMode(e.target.checked)} className="rounded" />
+                    Auto
+                  </label>
+                </div>
+              </div>
+
+              {/* Video Player */}
+              <VideoPlayer
+                src={src}
+                title={mediaData?.title || 'Loading...'}
+                blurPlayer={blurPlayer}
+                onError={() => {
+                  console.log('Iframe failed to load, trying next API...')
+                  if (window.location.protocol === 'https:' && src.includes('vidsrc')) {
+                    setSslError(true)
+                  }
+                  const fallbackOrder = ['3','4','1','2']
+                  const currentIndex = fallbackOrder.indexOf(apiVersion)
+                  if (currentIndex < fallbackOrder.length - 1) {
+                    const nextApi = fallbackOrder[currentIndex + 1] as '1' | '2' | '3' | '4'
+                    setApiVersion(nextApi)
+                  } else {
+                    setAllApisFailed(true)
+                  }
+                }}
+                onLoad={() => setUserInteracted(false)}
+                onPlayerStart={() => setBlurPlayer(false)}
+                onNextEpisode={() => {
+                  if (isTv) {
+                    setEpisode(episode + 1)
+                  }
+                }}
+                onPrevEpisode={() => {
+                  if (isTv && episode > 1) {
+                    setEpisode(episode - 1)
+                  }
+                }}
+                hasNextEpisode={isTv}
+                hasPrevEpisode={isTv && episode > 1}
+              />
+
+              {/* Episode Information - Below Player */}
+              {isTv && currentEpisodeData && (
+                <div className="bg-neutral-900/70 border border-neutral-800 rounded-lg p-4">
+                  <h2 className="text-2xl font-bold text-white mb-2">
+                    {episode}. {currentEpisodeData.name}
+                  </h2>
+                  {currentEpisodeData.air_date && (
+                    <p className="text-neutral-400 text-sm mb-3">
+                      {(() => {
+                        try {
+                          const date = new Date(currentEpisodeData.air_date)
+                          if (isNaN(date.getTime())) return currentEpisodeData.air_date
+                          return date.toLocaleDateString('en-US', { 
+                            month: 'long', 
+                            day: 'numeric', 
+                            year: 'numeric' 
+                          })
+                        } catch (error) {
+                          return currentEpisodeData.air_date
+                        }
+                      })()}
+                    </p>
+                  )}
+                  {currentEpisodeData.overview && (
+                    <p className="text-neutral-300 text-base leading-relaxed">
+                      {currentEpisodeData.overview}
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {/* Show Details */}
+              <div className="flex justify-center">
+                <div className="w-full max-w-6xl -ml-2">
+                  <ShowDetails
+                    tmdbId={params.id}
+                    type={isTv ? 'tv' : 'movie'}
+                    currentEpisode={episode}
+                    currentSeason={season}
+                  />
+                </div>
+              </div>
             </div>
-            <div className="text-neutral-400 text-center max-w-md">
+
+            {/* Right Sidebar - Episodes, Related, and Recommendations */}
+            <div className="flex flex-col space-y-6">
+              {/* Episodes List - Original size */}
+              {isTv && (
+                <div>
+                  <EpisodeList
+                    tmdbId={params.id}
+                    season={season}
+                    currentEpisode={episode}
+                    onEpisodeSelect={setEpisode}
+                    onSeasonChange={setSeason}
+                    onBlurToggle={setBlurPlayer}
+                    blurPlayer={blurPlayer}
+                  />
+                </div>
+              )}
+
+              {/* Related Content */}
+              <Related id={params.id} type={isTv ? 'tv' : 'movie'} />
+
+              {/* Recommendations */}
+              <Recommendations id={params.id} type={isTv ? 'tv' : 'movie'} />
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+      {/* Error Modal */}
+      {allApisFailed && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-neutral-900 rounded-lg p-8 max-w-md mx-4">
+            <div className="text-red-400 text-4xl mb-4">⚠️</div>
+            <h2 className="text-white text-xl font-semibold mb-4">
+              {sslError ? 'SSL Security Error' : 'Stream Not Available'}
+            </h2>
+            <div className="text-neutral-400 text-sm mb-6">
               {sslError ? (
                 <>
                   <div className="text-red-300 mb-3">
                     ERR_SSL_PROTOCOL_ERROR detected
                   </div>
-                  <div className="text-sm">
+                  <div className="mb-3">
                     This is a browser security issue. Try:
                   </div>
-                  <ul className="mt-2 text-sm space-y-1">
+                  <ul className="space-y-1">
                     <li>• Use incognito/private mode</li>
                     <li>• Try a different browser</li>
                     <li>• Disable browser extensions</li>
@@ -250,7 +387,7 @@ export default function WatchPage({ params }: { params: { id: string } }) {
               ) : (
                 <>
                   All streaming sources are currently unavailable. This might be due to:
-                  <ul className="mt-2 text-sm space-y-1">
+                  <ul className="mt-2 space-y-1">
                     <li>• Geographic restrictions</li>
                     <li>• Network connectivity issues</li>
                     <li>• SSL/Certificate errors</li>
@@ -271,42 +408,14 @@ export default function WatchPage({ params }: { params: { id: string } }) {
                 setAttempted({})
                 setAutoTried({})
               }}
-              className="px-4 py-2 bg-brand-600 hover:bg-brand-700 rounded text-white"
+              className="w-full px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded text-white"
             >
               Try Again
             </button>
           </div>
-        ) : (
-          <iframe
-            src={src}
-            allowFullScreen
-            referrerPolicy="no-referrer"
-            loading="lazy"
-            className="w-full h-[60vh] rounded-lg border border-neutral-800"
-            onLoad={() => { /* reset interaction lock on new src; wait for MEDIA_DATA */ setUserInteracted(false) }}
-            onError={() => {
-              console.log('Iframe failed to load, trying next API...')
-              // Check if it's an SSL error
-              if (window.location.protocol === 'https:' && src.includes('vidsrc')) {
-                setSslError(true)
-              }
-              // Try next API in fallback order
-              const fallbackOrder = ['3','4','1','2']
-              const currentIndex = fallbackOrder.indexOf(apiVersion)
-              if (currentIndex < fallbackOrder.length - 1) {
-                const nextApi = fallbackOrder[currentIndex + 1] as '1' | '2' | '3' | '4'
-                setApiVersion(nextApi)
-              } else {
-                setAllApisFailed(true)
-              }
-            }}
-            onClick={() => setUserInteracted(true)}
-            onMouseDown={() => setUserInteracted(true)}
-          />
-        )}
-      </div>
-      <Recommendations id={params.id} type={isTv ? 'tv' : 'movie'} />
-    </main>
+        </div>
+      )}
+    </div>
   )
 }
 
