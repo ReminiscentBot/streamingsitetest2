@@ -26,13 +26,38 @@ export default function ContinueWatching() {
         // Debug: Log all localStorage keys
         console.log('All localStorage keys:', Object.keys(localStorage))
         
+        // Also check for any keys that might contain progress data
+        const allKeys = Object.keys(localStorage)
+        const progressKeys = allKeys.filter(key => 
+          key.toLowerCase().includes('progress') || 
+          key.toLowerCase().includes('watch') || 
+          key.toLowerCase().includes('video') || 
+          key.toLowerCase().includes('episode') ||
+          key.toLowerCase().includes('vidfast') ||
+          key.toLowerCase().includes('vidsrc')
+        )
+        console.log('Potential progress keys found:', progressKeys)
+        
+        // Log the content of any potential progress keys
+        progressKeys.forEach(key => {
+          const value = localStorage.getItem(key)
+          console.log(`Key "${key}" contains:`, value)
+        })
+        
         // Get movies/TV shows progress - try multiple possible keys
         const possibleKeys = [
           'vidsrcwtf-Progress',
           'vidsrc-Progress', 
           'streaming-progress',
           'watch-progress',
-          'continue-watching'
+          'continue-watching',
+          'vidfast-Progress',
+          'vidfast-progress',
+          'player-progress',
+          'video-progress',
+          'episode-progress',
+          'tv-progress',
+          'movie-progress'
         ]
         
         let raw = null
