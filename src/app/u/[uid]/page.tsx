@@ -246,43 +246,6 @@ export default function UserProfile({ params }: { params: { uid: string } }) {
       {/* Content Sections */}
       <div className="max-w-4xl mx-auto px-6 pb-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {/* Currently Watching */}
-          <div className="bg-neutral-900/50 backdrop-blur-sm rounded-xl border border-neutral-700/50 p-4">
-            <h3 className="text-sm font-semibold text-white mb-3 flex items-center gap-2">
-              <span className="text-brand-400">▶️</span>
-              Currently Watching
-            </h3>
-            {data?.profile?.currentWatchingTitle ? (
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-16 bg-neutral-800 rounded-lg border border-neutral-700 flex items-center justify-center overflow-hidden">
-                  <Image 
-                    src={data.profile.currentWatchingPoster || '/placeholder.png'} 
-                    alt={data.profile.currentWatchingTitle || ''} 
-                    width={48} 
-                    height={64} 
-                    className="object-cover rounded-lg" 
-                  />
-                </div>
-                <div>
-                  <div className="font-medium text-white text-sm">{data.profile.currentWatchingTitle}</div>
-                  {data.profile.currentWatchingType === 'tv' && (
-                    <div className="text-xs text-neutral-400">S{data.profile.currentWatchingSeason} · E{data.profile.currentWatchingEpisode}</div>
-                  )}
-                </div>
-              </div>
-            ) : (
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-16 bg-neutral-800 rounded-lg border border-neutral-700 flex items-center justify-center">
-                  <Image src="/placeholder.png" alt="poster" width={48} height={64} className="object-cover rounded-lg" />
-                </div>
-                <div>
-                  <div className="font-medium text-white text-sm">Not currently watching</div>
-                  <div className="text-xs text-neutral-500">Start watching to see your activity here</div>
-                </div>
-              </div>
-            )}
-          </div>
-
           {/* Last Watching */}
           <div className="bg-neutral-900/50 backdrop-blur-sm rounded-xl border border-neutral-700/50 p-4">
             <h3 className="text-sm font-semibold text-white mb-3 flex items-center gap-2">
