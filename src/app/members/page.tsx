@@ -98,7 +98,7 @@ async function getMembersStats() {
     })
 
     // Sort staff members by role hierarchy
-    const roleHierarchy = { owner: 1, developer: 2, admin: 3, trial_mod: 4 }
+    const roleHierarchy: Record<string, number> = { owner: 1, developer: 2, admin: 3, trial_mod: 4 }
     staffMembers.sort((a, b) => {
       const aHighestRole = Math.min(...a.roles.map(role => roleHierarchy[role.name] || 999))
       const bHighestRole = Math.min(...b.roles.map(role => roleHierarchy[role.name] || 999))
