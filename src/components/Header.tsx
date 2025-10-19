@@ -64,7 +64,7 @@ export default function Header() {
 
   return (
     <header className="sticky top-0 z-30 bg-neutral-900/70 backdrop-blur border-b border-neutral-800">
-      <div className="max-w-6xl mx-auto p-4 flex items-center justify-between">
+      <div className="max-w-6xl mx-auto p-4 flex items-center justify-between flex-wrap gap-2">
         <Link href="/" className="group relative flex items-center gap-3 px-4 py-3 rounded-xl overflow-hidden">
           {/* Advanced background effects */}
           <div className="absolute inset-0 bg-gradient-to-r from-brand-500/20 via-purple-500/20 to-pink-500/20 opacity-0 group-hover:opacity-100 transition-all duration-700 blur-xl"></div>
@@ -128,7 +128,7 @@ export default function Header() {
           </div>
         )}
         
-        <nav className="flex items-center gap-2">
+        <nav className="flex items-center gap-2 flex-shrink-0">
           <Link 
             href="/" 
             className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-200 ${
@@ -178,10 +178,10 @@ export default function Header() {
             <span className="hidden sm:inline">Members</span>
           </Link>
           {status === 'authenticated' ? (
-            <div className="relative" ref={dropdownRef}>
+            <div className="relative flex-shrink-0" ref={dropdownRef}>
               <button
                 onClick={() => setDropdownOpen(!dropdownOpen)}
-                className="flex items-center gap-3 px-3 py-2 rounded-lg bg-neutral-800/50 hover:bg-neutral-700/50 transition-colors border border-neutral-700/50"
+                className="flex items-center gap-3 px-3 py-2 rounded-lg bg-neutral-800/50 hover:bg-neutral-700/50 transition-colors border border-neutral-700/50 whitespace-nowrap"
               >
                 <div className="relative w-8 h-8 rounded-full overflow-hidden">
                   <Image 
