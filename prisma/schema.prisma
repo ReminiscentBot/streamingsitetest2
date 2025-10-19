@@ -52,6 +52,8 @@ model Profile {
   customAvatar   String?
   customBanner   String?
   lastActiveAt   DateTime @default(now())
+  totalTimeOnSite Int     @default(0) // Total time in minutes
+  sessionStartTime DateTime? // When current session started
   
   // Currently Watching (real-time)
   currentWatchingId Int?

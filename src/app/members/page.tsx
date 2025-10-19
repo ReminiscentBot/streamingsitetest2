@@ -5,6 +5,32 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { formatLastActive, isCurrentlyActive, formatSearchTime } from '@/lib/timeUtils'
 
+function formatTotalTime(minutes: number): string {
+  if (minutes < 60) {
+    return `${minutes}m`
+  } else if (minutes < 1440) { // less than 24 hours
+    const hours = Math.floor(minutes / 60)
+    return `${hours}h`
+  } else if (minutes < 10080) { // less than 7 days
+    const days = Math.floor(minutes / 1440)
+    return `${days}d`
+  } else if (minutes < 40320) { // less than 4 weeks
+    const weeks = Math.floor(minutes / 10080)
+    return `${weeks}w`
+  } else {
+    const months = Math.floor(minutes / 40320)
+    return `${months}mo`
+  }
+}
+
+function getSessionDuration(sessionStartTime: Date | null): string {
+  if (!sessionStartTime) return '0m'
+  const now = new Date()
+  const diffMs = now.getTime() - sessionStartTime.getTime()
+  const diffMinutes = Math.floor(diffMs / (1000 * 60))
+  return formatTotalTime(diffMinutes)
+}
+
 const prisma = new PrismaClient()
 
 async function getMembersStats() {
@@ -34,7 +60,7 @@ async function getMembersStats() {
       roles: user.roles
     }))
 
-    // Get most active users (by profile activity)
+    // Get most active users (by total time on site)
     const mostActiveUsers = await prisma.user.findMany({
       include: {
         profile: true,
@@ -42,15 +68,18 @@ async function getMembersStats() {
       },
       where: {
         profile: {
-          isNot: null
+          isNot: null,
+          totalTimeOnSite: {
+            gt: 0
+          }
         }
       },
       orderBy: {
         profile: {
-          lastActiveAt: 'desc'
+          totalTimeOnSite: 'desc'
         }
       },
-      take: 10
+      take: 5
     })
 
     // Get staff members
@@ -307,8 +336,11 @@ export default async function MembersPage() {
           <div className="bg-neutral-900/50 backdrop-blur-sm rounded-xl border border-neutral-700/50 p-6">
             <h3 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
               <span className="text-brand-400">⏰</span>
-              Most Active Users
+              Most Active Users (Top 5)
             </h3>
+            <p className="text-sm text-neutral-400 mb-4">
+              Users ranked by total time spent on the website
+            </p>
             <div className="space-y-3">
               {stats.mostActiveUsers.slice(0, 5).map((user, index) => (
                 <div key={user.id} className="flex items-center gap-3 p-3 rounded-lg hover:bg-neutral-800/50 transition-colors">
@@ -329,9 +361,9 @@ export default async function MembersPage() {
                       <div className="text-sm text-neutral-400">UID: {user.uid}</div>
                     </div>
                     <div className="text-right">
-                      <div className="text-xs text-neutral-400">Last active</div>
+                      <div className="text-xs text-neutral-400">Total time</div>
                       <div className="text-sm text-white">
-                        {user.profile?.lastActiveAt ? formatLastActive(user.profile.lastActiveAt) : '—'}
+                        {user.profile?.totalTimeOnSite ? formatTotalTime(user.profile.totalTimeOnSite) : '0m'}
                       </div>
                       {user.profile?.lastWatchingTitle && (
                         <div className="text-xs text-brand-400 mt-1">
@@ -414,7 +446,7 @@ export default async function MembersPage() {
                         </div>
                       </div>
                       <div className="text-xs text-neutral-400">
-                        UID: {user.uid} • Last active: {user.profile?.lastActiveAt ? formatLastActive(user.profile.lastActiveAt) : '—'}
+                        UID: {user.uid} • Session: {getSessionDuration(user.profile?.sessionStartTime)}
                       </div>
                     </Link>
                   </div>
