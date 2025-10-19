@@ -62,18 +62,45 @@ export default function Header() {
   return (
     <header className="sticky top-0 z-30 bg-neutral-900/70 backdrop-blur border-b border-neutral-800">
       <div className="max-w-6xl mx-auto p-4 flex items-center justify-between">
-        <Link href="/" className="group flex items-center gap-2 relative">
-          <div className="relative">
+        <Link href="/" className="group relative flex items-center gap-3 px-4 py-3 rounded-xl overflow-hidden">
+          {/* Advanced background effects */}
+          <div className="absolute inset-0 bg-gradient-to-r from-brand-500/20 via-purple-500/20 to-pink-500/20 opacity-0 group-hover:opacity-100 transition-all duration-700 blur-xl"></div>
+          <div className="absolute inset-0 bg-gradient-to-r from-brand-400/10 via-purple-400/10 to-pink-400/10 opacity-0 group-hover:opacity-100 transition-all duration-500"></div>
+          
+          {/* Animated border */}
+          <div className="absolute inset-0 rounded-xl border-2 border-transparent bg-gradient-to-r from-brand-400 via-purple-400 to-pink-400 bg-clip-border opacity-0 group-hover:opacity-100 transition-all duration-500">
+            <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-brand-400 via-purple-400 to-pink-400 animate-spin-slow"></div>
+          </div>
+          
+          {/* Icon with advanced effects */}
+          <div className="relative z-10">
             <FontAwesomeIcon 
               icon={faClapperboard} 
-              className="text-brand-400 group-hover:text-brand-300 transition-all duration-300 group-hover:scale-110 group-hover:rotate-12 group-hover:drop-shadow-[0_0_20px_rgba(139,92,246,0.6)]" 
+              className="text-2xl text-brand-400 group-hover:text-white transition-all duration-500 group-hover:scale-125 group-hover:rotate-180 group-hover:drop-shadow-[0_0_30px_rgba(255,255,255,0.8)] group-hover:animate-bounce" 
             />
-            <div className="absolute inset-0 bg-brand-400/20 rounded-full blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            {/* Rotating glow ring around icon */}
+            <div className="absolute inset-0 w-8 h-8 border-2 border-brand-400/30 rounded-full opacity-0 group-hover:opacity-100 group-hover:animate-spin transition-all duration-500"></div>
+            <div className="absolute inset-0 w-6 h-6 border border-purple-400/50 rounded-full opacity-0 group-hover:opacity-100 group-hover:animate-reverse-spin transition-all duration-700"></div>
           </div>
-          <span className="font-bold text-transparent bg-clip-text bg-gradient-to-r from-brand-400 via-purple-400 to-brand-500 group-hover:from-brand-300 group-hover:via-purple-300 group-hover:to-brand-400 transition-all duration-500 group-hover:scale-105 group-hover:drop-shadow-[0_0_15px_rgba(139,92,246,0.4)] animate-pulse group-hover:animate-none">
-            Reminiscent
+          
+          {/* Advanced text with multiple effects */}
+          <span className="relative z-10 text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-brand-400 via-purple-400 to-pink-400 group-hover:from-white group-hover:via-yellow-300 group-hover:to-white transition-all duration-700 group-hover:scale-110 group-hover:drop-shadow-[0_0_20px_rgba(255,255,255,0.6)] group-hover:animate-pulse">
+            <span className="relative">
+              Reminiscent
+              {/* Animated underline */}
+              <div className="absolute -bottom-1 left-0 w-0 h-1 bg-gradient-to-r from-brand-400 to-pink-400 group-hover:w-full transition-all duration-700"></div>
+              {/* Floating particles effect */}
+              <div className="absolute -top-2 -right-2 w-2 h-2 bg-brand-400 rounded-full opacity-0 group-hover:opacity-100 group-hover:animate-ping"></div>
+              <div className="absolute -bottom-2 -left-2 w-1 h-1 bg-purple-400 rounded-full opacity-0 group-hover:opacity-100 group-hover:animate-ping group-hover:animation-delay-200"></div>
+            </span>
           </span>
-          <div className="absolute inset-0 bg-gradient-to-r from-brand-400/10 via-purple-400/10 to-brand-500/10 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-sm"></div>
+          
+          {/* Advanced particle effects */}
+          <div className="absolute inset-0 overflow-hidden rounded-xl">
+            <div className="absolute top-2 left-4 w-1 h-1 bg-white rounded-full opacity-0 group-hover:opacity-100 group-hover:animate-float-up"></div>
+            <div className="absolute top-4 right-6 w-1 h-1 bg-brand-400 rounded-full opacity-0 group-hover:opacity-100 group-hover:animate-float-up group-hover:animation-delay-300"></div>
+            <div className="absolute bottom-3 left-8 w-1 h-1 bg-purple-400 rounded-full opacity-0 group-hover:opacity-100 group-hover:animate-float-up group-hover:animation-delay-500"></div>
+          </div>
         </Link>
         
         {/* Search Bar */}
