@@ -190,7 +190,12 @@ export default function WatchPage({ params }: { params: { id: string } }) {
 
   // Track activity when we have proper TMDB data (only once per show)
   useEffect(() => {
-    console.log('🔍 Activity tracking useEffect triggered:', { mediaData: !!mediaData, showData: !!showData })
+    console.log('🔍 Activity tracking useEffect triggered:', { 
+      mediaData: !!mediaData, 
+      showData: !!showData,
+      showDataTitle: showData?.title || showData?.name,
+      showDataPoster: showData?.poster_path
+    })
     if (showData && (showData.title || showData.name)) {
       // Only use TMDB data for accurate titles
       const title = showData.title || showData.name
@@ -205,6 +210,11 @@ export default function WatchPage({ params }: { params: { id: string } }) {
       } else {
         console.log('⏭️ Skipping duplicate activity tracking for:', title)
       }
+    } else {
+      console.log('⏳ Waiting for proper TMDB data...', { 
+        hasShowData: !!showData,
+        hasTitle: !!(showData?.title || showData?.name)
+      })
     }
   }, [showData, params.id, lastTrackedShow])
 
