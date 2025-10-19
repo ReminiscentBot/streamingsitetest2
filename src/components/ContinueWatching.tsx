@@ -55,7 +55,7 @@ export default function ContinueWatching() {
       id: 'test-lenox-hill',
       type: 'tv',
       title: 'Lenox Hill',
-      poster_path: 'https://image.tmdb.org/t/p/w500/placeholder.jpg', // Use a real TMDB image
+      poster_path: '/placeholder.png', // Use local placeholder
       progress: { watched: 1847, duration: 3001 }, // 30:47 / 50:01
       last_season_watched: '1',
       last_episode_watched: '1'
@@ -117,6 +117,13 @@ export default function ContinueWatching() {
                       // Fallback to a default image if the poster fails
                       const target = e.target as HTMLImageElement
                       target.src = 'https://via.placeholder.com/300x450/1f2937/9ca3af?text=No+Image'
+                    }}
+                    onLoad={(e) => {
+                      // If the image loads but is the placeholder, we can handle it here if needed
+                      const target = e.target as HTMLImageElement
+                      if (target.src.includes('placeholder.png')) {
+                        // This is our local placeholder, which should work
+                      }
                     }}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
