@@ -75,31 +75,20 @@ async function getMembersStats() {
       }
     })
 
-    // Get online users (active within last 5 minutes)
+    // Get online users (active within last 5 minutes) - use same logic as Last Active Users
     const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000)
     const onlineUsers = await prisma.user.findMany({
       include: {
         profile: true,
-        roles: true,
-        presence: true
+        roles: true
       },
       where: {
-        AND: [
-          {
-            presence: {
-              updatedAt: {
-                gte: fiveMinutesAgo
-              }
-            }
-          },
-          {
-            profile: {
-              lastActiveAt: {
-                gte: fiveMinutesAgo
-              }
-            }
+        profile: {
+          isNot: null,
+          lastActiveAt: {
+            gte: fiveMinutesAgo
           }
-        ]
+        }
       },
       orderBy: {
         profile: {
@@ -244,11 +233,6 @@ export default async function MembersPage() {
                               const roleName = role.name === 'trial_mod' ? 'Trial Mod' : role.name.charAt(0).toUpperCase() + role.name.slice(1)
                               return roleName
                             }).join(', ')}
-                          </div>
-                        )}
-                        {user.presence?.currentPage && (
-                          <div className="text-xs text-brand-400 mt-1 truncate">
-                            {user.presence.currentPage}
                           </div>
                         )}
                         <div className="text-xs text-neutral-400 mt-1">
