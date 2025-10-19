@@ -1,7 +1,7 @@
 "use client"
 import { useEffect, useState } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faCircle, faGamepad, faGlobe } from '@fortawesome/free-solid-svg-icons'
+import { faCircle, faGlobe } from '@fortawesome/free-solid-svg-icons'
 import Image from 'next/image'
 
 interface OnlineStatusData {
@@ -105,18 +105,6 @@ export default function OnlineStatusWidget({ userId }: { userId: string }) {
           </div>
         </div>
         
-        {/* Activity Status */}
-        {statusData.activity && (
-          <div className="flex items-center gap-3">
-            <FontAwesomeIcon icon={faGamepad} className="text-neutral-500 text-sm" />
-            <div className="flex-1">
-              <div className="text-xs text-neutral-400 mb-1">Currently Watching</div>
-              <div className="text-sm text-neutral-300 truncate">
-                {statusData.activity.name}
-              </div>
-            </div>
-          </div>
-        )}
         
         {/* Current Page */}
         {statusData.currentPage && (

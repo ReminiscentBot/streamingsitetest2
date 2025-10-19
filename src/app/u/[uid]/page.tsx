@@ -195,7 +195,7 @@ export default function UserProfile({ params }: { params: { uid: string } }) {
               </div>
               <span className="text-xs text-neutral-400 font-medium">Last Active</span>
             </div>
-            {data?.presence?.currentPage ? (
+            {data?.presence?.currentPage && !data.presence.currentPage.startsWith('Watching') ? (
               data.presence.currentPage.startsWith('Profile:') && data.viewedProfile ? (
                 <div className="text-lg font-semibold">
                   <span className="text-white">Viewing member profile </span>
