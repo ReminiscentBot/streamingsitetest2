@@ -62,9 +62,18 @@ export default function Header() {
   return (
     <header className="sticky top-0 z-30 bg-neutral-900/70 backdrop-blur border-b border-neutral-800">
       <div className="max-w-6xl mx-auto p-4 flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-2 text-brand-400">
-          <FontAwesomeIcon icon={faClapperboard} />
-          <span className="font-semibold">Reminiscent</span>
+        <Link href="/" className="group flex items-center gap-2 relative">
+          <div className="relative">
+            <FontAwesomeIcon 
+              icon={faClapperboard} 
+              className="text-brand-400 group-hover:text-brand-300 transition-all duration-300 group-hover:scale-110 group-hover:rotate-12 group-hover:drop-shadow-[0_0_20px_rgba(139,92,246,0.6)]" 
+            />
+            <div className="absolute inset-0 bg-brand-400/20 rounded-full blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          </div>
+          <span className="font-bold text-transparent bg-clip-text bg-gradient-to-r from-brand-400 via-purple-400 to-brand-500 group-hover:from-brand-300 group-hover:via-purple-300 group-hover:to-brand-400 transition-all duration-500 group-hover:scale-105 group-hover:drop-shadow-[0_0_15px_rgba(139,92,246,0.4)] animate-pulse group-hover:animate-none">
+            Reminiscent
+          </span>
+          <div className="absolute inset-0 bg-gradient-to-r from-brand-400/10 via-purple-400/10 to-brand-500/10 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-sm"></div>
         </Link>
         
         {/* Search Bar */}
