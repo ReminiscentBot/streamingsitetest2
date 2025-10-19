@@ -52,6 +52,17 @@ model Profile {
   customAvatar   String?
   customBanner   String?
   lastActiveAt   DateTime @default(now())
+  
+  // Currently Watching (real-time)
+  currentWatchingId Int?
+  currentWatchingType String? // 'movie' | 'tv'
+  currentWatchingSeason Int?
+  currentWatchingEpisode Int?
+  currentWatchingTitle  String?
+  currentWatchingPoster String?
+  currentWatchingTmdbId Int?
+  
+  // Last Watching (persistent)
   lastWatchingId Int?
   lastWatchingType String? // 'movie' | 'tv'
   lastWatchingSeason Int?

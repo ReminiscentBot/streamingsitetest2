@@ -32,11 +32,20 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }
 
-    // Update or create profile with current watching data
+    // Update both current and last watching data
     await prisma.profile.upsert({
       where: { userId: user.id },
       update: {
         lastActiveAt: new Date(),
+        // Update current watching
+        currentWatchingId: tmdbId || null,
+        currentWatchingTitle: title,
+        currentWatchingType: type,
+        currentWatchingSeason: season || null,
+        currentWatchingEpisode: episode || null,
+        currentWatchingPoster: poster || null,
+        currentWatchingTmdbId: tmdbId || null,
+        // Also update last watching (this becomes the last watched)
         lastWatchingId: tmdbId || null,
         lastWatchingTitle: title,
         lastWatchingType: type,
@@ -48,6 +57,14 @@ export async function POST(request: NextRequest) {
       create: {
         userId: user.id,
         lastActiveAt: new Date(),
+        // Set both current and last watching
+        currentWatchingId: tmdbId || null,
+        currentWatchingTitle: title,
+        currentWatchingType: type,
+        currentWatchingSeason: season || null,
+        currentWatchingEpisode: episode || null,
+        currentWatchingPoster: poster || null,
+        currentWatchingTmdbId: tmdbId || null,
         lastWatchingId: tmdbId || null,
         lastWatchingTitle: title,
         lastWatchingType: type,

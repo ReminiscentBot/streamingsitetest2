@@ -125,7 +125,7 @@ export default function EpisodeList({ tmdbId, season, currentEpisode, onEpisodeS
           >
             {seasons.map((s) => (
               <option key={s.season_number} value={s.season_number}>
-                EPS {s.season_number} - {s.episode_count || 0}
+                Season {s.season_number} - {s.episode_count || 0} episodes
               </option>
             ))}
           </select>

@@ -32,18 +32,20 @@ export async function POST(req: NextRequest) {
     },
   })
 
-  // Clear watching data if user is not on a watch page
+  // Only clear current watching data if user is not on a watch page
+  // Keep lastWatching data for "Last Watching" display
   if (currentPage && !currentPage.startsWith('watch/')) {
     await prisma.profile.updateMany({
       where: { userId: user.id },
       data: {
-        lastWatchingId: null,
-        lastWatchingTitle: null,
-        lastWatchingType: null,
-        lastWatchingSeason: null,
-        lastWatchingEpisode: null,
-        lastWatchingPoster: null,
-        lastWatchingTmdbId: null
+        // Only clear current watching, keep last watching
+        currentWatchingId: null,
+        currentWatchingTitle: null,
+        currentWatchingType: null,
+        currentWatchingSeason: null,
+        currentWatchingEpisode: null,
+        currentWatchingPoster: null,
+        currentWatchingTmdbId: null
       }
     })
   }
