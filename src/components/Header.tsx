@@ -64,7 +64,7 @@ export default function Header() {
 
   return (
     <header className="sticky top-0 z-30 bg-neutral-900/70 backdrop-blur border-b border-neutral-800">
-      <div className="max-w-6xl mx-auto p-4 flex items-center justify-between flex-wrap gap-2">
+      <div className="max-w-6xl mx-auto p-4 flex items-center justify-between flex-wrap gap-2 min-h-[80px]">
         <Link href="/" className="group relative flex items-center gap-3 px-4 py-3 rounded-xl overflow-hidden">
           {/* Advanced background effects */}
           <div className="absolute inset-0 bg-gradient-to-r from-brand-500/20 via-purple-500/20 to-pink-500/20 opacity-0 group-hover:opacity-100 transition-all duration-700 blur-xl"></div>
@@ -128,7 +128,7 @@ export default function Header() {
           </div>
         )}
         
-        <nav className="flex items-center gap-2 flex-shrink-0">
+        <nav className="flex items-center gap-2 flex-shrink-0 min-w-0">
           <Link 
             href="/" 
             className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-200 ${
@@ -177,7 +177,12 @@ export default function Header() {
             <FontAwesomeIcon icon={faUser} className="w-4 h-4" />
             <span className="hidden sm:inline">Members</span>
           </Link>
-          {status === 'authenticated' ? (
+          {status === 'loading' ? (
+            <div className="flex items-center gap-3 px-3 py-2 rounded-lg bg-neutral-800/50 border border-neutral-700/50 animate-pulse">
+              <div className="w-8 h-8 bg-neutral-700 rounded-full"></div>
+              <div className="w-20 h-4 bg-neutral-700 rounded"></div>
+            </div>
+          ) : status === 'authenticated' ? (
             <div className="relative flex-shrink-0" ref={dropdownRef}>
               <button
                 onClick={() => setDropdownOpen(!dropdownOpen)}
