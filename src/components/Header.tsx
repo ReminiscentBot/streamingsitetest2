@@ -86,17 +86,19 @@ export default function Header() {
             <div className="absolute inset-0 w-6 h-6 border border-purple-400/50 rounded-full opacity-0 group-hover:opacity-100 group-hover:animate-reverse-spin transition-all duration-700"></div>
           </div>
           
-          {/* Advanced text with multiple effects */}
-          <span className="relative z-10 text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-brand-400 via-purple-400 to-pink-400 group-hover:from-white group-hover:via-yellow-300 group-hover:to-white transition-all duration-700 group-hover:scale-110 group-hover:drop-shadow-[0_0_20px_rgba(255,255,255,0.6)] group-hover:animate-pulse">
-            <span className="relative">
-              Reminiscent
-              {/* Animated underline */}
-              <div className="absolute -bottom-1 left-0 w-0 h-1 bg-gradient-to-r from-brand-400 to-pink-400 group-hover:w-full transition-all duration-700"></div>
-              {/* Floating particles effect */}
-              <div className="absolute -top-2 -right-2 w-2 h-2 bg-brand-400 rounded-full opacity-0 group-hover:opacity-100 group-hover:animate-ping"></div>
-              <div className="absolute -bottom-2 -left-2 w-1 h-1 bg-purple-400 rounded-full opacity-0 group-hover:opacity-100 group-hover:animate-ping group-hover:animation-delay-200"></div>
-            </span>
-          </span>
+              {/* Advanced text with multiple effects - Cross-browser compatible */}
+              <span className="relative z-10 text-2xl font-black text-brand-400 group-hover:text-white transition-all duration-700 group-hover:scale-110 group-hover:animate-pulse">
+                <span className="relative">
+                  Reminiscent
+                  {/* Animated underline */}
+                  <div className="absolute -bottom-1 left-0 w-0 h-1 bg-gradient-to-r from-brand-400 to-pink-400 group-hover:w-full transition-all duration-700"></div>
+                  {/* Floating particles effect */}
+                  <div className="absolute -top-2 -right-2 w-2 h-2 bg-brand-400 rounded-full opacity-0 group-hover:opacity-100 group-hover:animate-ping"></div>
+                  <div className="absolute -bottom-2 -left-2 w-1 h-1 bg-purple-400 rounded-full opacity-0 group-hover:opacity-100 group-hover:animate-ping group-hover:animation-delay-200"></div>
+                  {/* Glow effect for better visibility */}
+                  <div className="absolute inset-0 text-brand-400 group-hover:text-white group-hover:drop-shadow-[0_0_10px_rgba(139,92,246,0.5)] transition-all duration-700"></div>
+                </span>
+              </span>
           
           {/* Advanced particle effects */}
           <div className="absolute inset-0 overflow-hidden rounded-xl">

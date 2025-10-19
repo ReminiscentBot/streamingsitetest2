@@ -36,9 +36,26 @@
   animation: reverse-spin 2s linear infinite;
 }
 
-.animate-float-up {
-  animation: float-up 1.5s ease-out infinite;
-}
+    .animate-float-up {
+      animation: float-up 1.5s ease-out infinite;
+    }
+
+    /* Cross-browser compatibility fixes */
+    .text-transparent {
+      -webkit-text-fill-color: transparent;
+      -webkit-background-clip: text;
+      background-clip: text;
+    }
+
+    /* Fallback for browsers that don't support background-clip: text */
+    @supports not (background-clip: text) {
+      .text-transparent {
+        color: #8b5cf6 !important;
+        -webkit-text-fill-color: initial;
+        -webkit-background-clip: initial;
+        background-clip: initial;
+      }
+    }
 
 :root {
   color-scheme: dark;
