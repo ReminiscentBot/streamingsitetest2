@@ -46,13 +46,13 @@ export async function GET(req: NextRequest) {
         }
       }
       
-      // If user has last watching data, show that instead
-      if (user.profile?.lastWatchingTitle) {
+      // If user has current watching data, show that instead
+      if (user.profile?.currentWatchingTitle) {
         activity = {
-          name: user.profile.lastWatchingTitle,
+          name: user.profile.currentWatchingTitle,
           type: 'WATCHING',
-          details: user.profile.lastWatchingType === 'tv' 
-            ? `Season ${user.profile.lastWatchingSeason}, Episode ${user.profile.lastWatchingEpisode}`
+          details: user.profile.currentWatchingType === 'tv' 
+            ? `Season ${user.profile.currentWatchingSeason}, Episode ${user.profile.currentWatchingEpisode}`
             : 'Movie'
         }
       }
