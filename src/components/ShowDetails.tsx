@@ -43,6 +43,15 @@ interface ShowData {
   revenue?: number
   budget?: number
   tagline?: string
+  videos?: {
+    results: Array<{
+      id: string
+      key: string
+      name: string
+      site: string
+      type: string
+    }>
+  }
 }
 
 export default function ShowDetails({ tmdbId, type, currentEpisode, currentSeason }: ShowDetailsProps) {
@@ -199,7 +208,7 @@ export default function ShowDetails({ tmdbId, type, currentEpisode, currentSeaso
           </p>
           
           {/* Trailer Button - Only show if trailer exists */}
-          {showData.videos?.results?.length > 0 && (
+          {showData.videos?.results && showData.videos.results.length > 0 && (
             <div className="flex items-center gap-3 mb-6">
               <button className="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-lg transition-colors">
                 <FontAwesomeIcon icon={faPlay} className="mr-2" />
