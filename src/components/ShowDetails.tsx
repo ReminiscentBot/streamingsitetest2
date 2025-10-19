@@ -57,6 +57,7 @@ interface ShowData {
 export default function ShowDetails({ tmdbId, type, currentEpisode, currentSeason }: ShowDetailsProps) {
   const [showData, setShowData] = useState<ShowData | null>(null)
   const [loading, setLoading] = useState(true)
+  const [websiteRating, setWebsiteRating] = useState<{ average: number; count: number } | null>(null)
 
   useEffect(() => {
     const fetchShowData = async () => {
@@ -72,7 +73,23 @@ export default function ShowDetails({ tmdbId, type, currentEpisode, currentSeaso
       }
     }
 
+    const fetchWebsiteRating = async () => {
+      try {
+        const response = await fetch(`/api/ratings?tmdbId=${tmdbId}&type=${type}`)
+        if (response.ok) {
+          const data = await response.json()
+          setWebsiteRating({
+            average: data.averageRating || 0,
+            count: data.totalRatings || 0
+          })
+        }
+      } catch (err) {
+        console.error('Failed to fetch website rating:', err)
+      }
+    }
+
     fetchShowData()
+    fetchWebsiteRating()
   }, [tmdbId, type])
 
   if (loading) {
@@ -241,9 +258,17 @@ export default function ShowDetails({ tmdbId, type, currentEpisode, currentSeaso
                 <span className="text-white">{status}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-neutral-400">Rating:</span>
+                <span className="text-neutral-400">TMDB Rating:</span>
                 <span className="text-white">{rating}/100</span>
               </div>
+              {websiteRating && websiteRating.count > 0 && (
+                <div className="flex justify-between">
+                  <span className="text-neutral-400">Our Rating:</span>
+                  <span className="text-white">
+                    {websiteRating.average.toFixed(1)}/5 ({websiteRating.count} rating{websiteRating.count !== 1 ? 's' : ''})
+                  </span>
+                </div>
+              )}
               <div className="flex justify-between">
                 <span className="text-neutral-400">Start Date:</span>
                 <span className="text-white">{startDate}</span>
