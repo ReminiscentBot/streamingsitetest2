@@ -32,6 +32,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }
 
+    console.log('👤 User found:', user.name, 'Profile exists:', !!user.profile)
+
     // Update both current and last watching data
     await prisma.profile.upsert({
       where: { userId: user.id },
@@ -75,6 +77,7 @@ export async function POST(request: NextRequest) {
       }
     })
     
+    console.log('✅ Profile updated successfully')
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Activity tracking error:', error)

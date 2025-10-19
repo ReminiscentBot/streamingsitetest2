@@ -166,7 +166,7 @@ export default function WatchPage({ params }: { params: { id: string } }) {
     fetchShowData()
   }, [params.id, isTv])
 
-  // Track activity when we have proper TMDB data
+  // Track activity when we have proper TMDB data (only once per show)
   useEffect(() => {
     console.log('🔍 Activity tracking useEffect triggered:', { mediaData: !!mediaData, showData: !!showData })
     if (showData && (showData.title || showData.name)) {
@@ -185,21 +185,6 @@ export default function WatchPage({ params }: { params: { id: string } }) {
       }
     }
   }, [showData, params.id, lastTrackedShow])
-
-  // Also track activity when media data is received (immediate tracking)
-  useEffect(() => {
-    if (mediaData && mediaData.title && showData && (showData.title || showData.name)) {
-      const title = showData.title || showData.name
-      const poster = showData.poster_path ? `https://image.tmdb.org/t/p/w500${showData.poster_path}` : ''
-      const showKey = `${title}-${params.id}`
-      
-      if (showKey !== lastTrackedShow) {
-        console.log('🎬 Immediate activity tracking:', { title, poster, showKey })
-        setLastTrackedShow(showKey)
-        trackActivity(title, poster)
-      }
-    }
-  }, [mediaData, showData, params.id, lastTrackedShow])
 
   // Fetch current episode data for TV shows
   useEffect(() => {
