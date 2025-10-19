@@ -193,12 +193,18 @@ export default async function MembersPage() {
                 const isAdmin = user.roles?.some(role => role.name === 'admin')
                 const isDeveloper = user.roles?.some(role => role.name === 'developer')
                 const isTrialMod = user.roles?.some(role => role.name === 'trial_mod')
+                const isModerator = user.roles?.some(role => role.name === 'moderator')
+                const isPremium = user.roles?.some(role => role.name === 'premium')
+                const isVip = user.roles?.some(role => role.name === 'vip')
                 
                 const getRoleColors = () => {
-                  if (isOwner) return { bg: 'from-red-900/20 to-red-800/20', hover: 'hover:from-red-800/30 hover:to-red-700/30', border: 'border-red-700/50', text: 'text-red-400' }
-                  if (isAdmin) return { bg: 'from-purple-900/20 to-purple-800/20', hover: 'hover:from-purple-800/30 hover:to-purple-700/30', border: 'border-purple-700/50', text: 'text-purple-400' }
-                  if (isDeveloper) return { bg: 'from-blue-900/20 to-blue-800/20', hover: 'hover:from-blue-800/30 hover:to-blue-700/30', border: 'border-blue-700/50', text: 'text-blue-400' }
-                  if (isTrialMod) return { bg: 'from-orange-900/20 to-orange-800/20', hover: 'hover:from-orange-800/30 hover:to-orange-700/30', border: 'border-orange-700/50', text: 'text-orange-400' }
+                  if (isOwner) return { bg: 'from-purple-600/20 to-pink-600/20', hover: 'hover:from-purple-600/30 hover:to-pink-600/30', border: 'border-purple-600/30', text: 'text-purple-400' }
+                  if (isAdmin) return { bg: 'from-yellow-600/20 to-orange-600/20', hover: 'hover:from-yellow-600/30 hover:to-orange-600/30', border: 'border-yellow-600/30', text: 'text-yellow-400' }
+                  if (isDeveloper) return { bg: 'from-green-600/20 to-emerald-600/20', hover: 'hover:from-green-600/30 hover:to-emerald-600/30', border: 'border-green-600/30', text: 'text-green-400' }
+                  if (isTrialMod) return { bg: 'from-blue-600/20 to-cyan-600/20', hover: 'hover:from-blue-600/30 hover:to-cyan-600/30', border: 'border-blue-600/30', text: 'text-blue-400' }
+                  if (isModerator) return { bg: 'from-indigo-600/20 to-purple-600/20', hover: 'hover:from-indigo-600/30 hover:to-purple-600/30', border: 'border-indigo-600/30', text: 'text-indigo-400' }
+                  if (isPremium) return { bg: 'from-pink-600/20 to-rose-600/20', hover: 'hover:from-pink-600/30 hover:to-rose-600/30', border: 'border-pink-600/30', text: 'text-pink-400' }
+                  if (isVip) return { bg: 'from-amber-600/20 to-yellow-600/20', hover: 'hover:from-amber-600/30 hover:to-yellow-600/30', border: 'border-amber-600/30', text: 'text-amber-400' }
                   return { bg: 'from-neutral-800/20 to-neutral-700/20', hover: 'hover:from-neutral-700/30 hover:to-neutral-600/30', border: 'border-neutral-600/50', text: 'text-neutral-400' }
                 }
 
@@ -355,12 +361,18 @@ export default async function MembersPage() {
                 const isAdmin = user.roles?.some(role => role.name === 'admin')
                 const isDeveloper = user.roles?.some(role => role.name === 'developer')
                 const isTrialMod = user.roles?.some(role => role.name === 'trial_mod')
+                const isModerator = user.roles?.some(role => role.name === 'moderator')
+                const isPremium = user.roles?.some(role => role.name === 'premium')
+                const isVip = user.roles?.some(role => role.name === 'vip')
                 
                 const getRoleColors = () => {
-                  if (isOwner) return { bg: 'from-red-900/20 to-red-800/20', hover: 'hover:from-red-800/30 hover:to-red-700/30', border: 'border-red-700/50', text: 'text-red-400' }
-                  if (isAdmin) return { bg: 'from-purple-900/20 to-purple-800/20', hover: 'hover:from-purple-800/30 hover:to-purple-700/30', border: 'border-purple-700/50', text: 'text-purple-400' }
-                  if (isDeveloper) return { bg: 'from-blue-900/20 to-blue-800/20', hover: 'hover:from-blue-800/30 hover:to-blue-700/30', border: 'border-blue-700/50', text: 'text-blue-400' }
-                  if (isTrialMod) return { bg: 'from-orange-900/20 to-orange-800/20', hover: 'hover:from-orange-800/30 hover:to-orange-700/30', border: 'border-orange-700/50', text: 'text-orange-400' }
+                  if (isOwner) return { bg: 'from-purple-600/20 to-pink-600/20', hover: 'hover:from-purple-600/30 hover:to-pink-600/30', border: 'border-purple-600/30', text: 'text-purple-400' }
+                  if (isAdmin) return { bg: 'from-yellow-600/20 to-orange-600/20', hover: 'hover:from-yellow-600/30 hover:to-orange-600/30', border: 'border-yellow-600/30', text: 'text-yellow-400' }
+                  if (isDeveloper) return { bg: 'from-green-600/20 to-emerald-600/20', hover: 'hover:from-green-600/30 hover:to-emerald-600/30', border: 'border-green-600/30', text: 'text-green-400' }
+                  if (isTrialMod) return { bg: 'from-blue-600/20 to-cyan-600/20', hover: 'hover:from-blue-600/30 hover:to-cyan-600/30', border: 'border-blue-600/30', text: 'text-blue-400' }
+                  if (isModerator) return { bg: 'from-indigo-600/20 to-purple-600/20', hover: 'hover:from-indigo-600/30 hover:to-purple-600/30', border: 'border-indigo-600/30', text: 'text-indigo-400' }
+                  if (isPremium) return { bg: 'from-pink-600/20 to-rose-600/20', hover: 'hover:from-pink-600/30 hover:to-rose-600/30', border: 'border-pink-600/30', text: 'text-pink-400' }
+                  if (isVip) return { bg: 'from-amber-600/20 to-yellow-600/20', hover: 'hover:from-amber-600/30 hover:to-yellow-600/30', border: 'border-amber-600/30', text: 'text-amber-400' }
                   return { bg: 'from-neutral-800/20 to-neutral-700/20', hover: 'hover:from-neutral-700/30 hover:to-neutral-600/30', border: 'border-neutral-600/50', text: 'text-neutral-400' }
                 }
                 

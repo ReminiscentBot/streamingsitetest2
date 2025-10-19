@@ -18,6 +18,9 @@ export default function AdminPage() {
   const [targetUid, setTargetUid] = useState('')
   const [role, setRole] = useState('trial_mod')
   const [assigning, setAssigning] = useState(false)
+  const [removeTargetUid, setRemoveTargetUid] = useState('')
+  const [removeRole, setRemoveRole] = useState('trial_mod')
+  const [removing, setRemoving] = useState(false)
 
   useEffect(() => {
     async function fetchAdminStatus() {
@@ -63,6 +66,32 @@ export default function AdminPage() {
     }
   }
 
+  const handleRemoveRole = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!removeTargetUid.trim()) return
+
+    setRemoving(true)
+    try {
+      const res = await fetch('/api/admin/remove', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ targetUid: removeTargetUid.trim(), role: removeRole })
+      })
+
+      if (res.ok) {
+        alert('Role removed successfully!')
+        setRemoveTargetUid('')
+      } else {
+        const error = await res.json()
+        alert(`Error: ${error.error}`)
+      }
+    } catch (error) {
+      alert('Failed to remove role')
+    } finally {
+      setRemoving(false)
+    }
+  }
+
   if (loading) {
     return (
       <main className="min-h-screen bg-gradient-to-br from-neutral-900 via-neutral-800 to-neutral-900 flex items-center justify-center">
@@ -102,7 +131,7 @@ export default function AdminPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
           {/* Assign Roles */}
           <div className="bg-neutral-900/50 backdrop-blur-sm rounded-xl border border-neutral-700/50 p-6">
             <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
@@ -218,6 +247,61 @@ export default function AdminPage() {
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Remove Role Section */}
+        <div className="bg-neutral-900/50 backdrop-blur-sm rounded-xl border border-neutral-700/50 p-6">
+          <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+            <FontAwesomeIcon icon={faShield} className="text-red-400" />
+            Remove Role
+          </h3>
+          
+          <form onSubmit={handleRemoveRole} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-neutral-300 mb-2">
+                Target User UID
+              </label>
+              <input
+                type="number"
+                value={removeTargetUid}
+                onChange={(e) => setRemoveTargetUid(e.target.value)}
+                placeholder="Enter user UID"
+                className="w-full rounded-md bg-neutral-800 border border-neutral-700 px-4 py-2 text-white placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-brand-500"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-neutral-300 mb-2">
+                Role to Remove
+              </label>
+              <select
+                value={removeRole}
+                onChange={(e) => setRemoveRole(e.target.value)}
+                className="w-full rounded-md bg-neutral-800 border border-neutral-700 px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
+              >
+                <option value="trial_mod">Trial Moderator</option>
+                <option value="moderator">Moderator</option>
+                <option value="admin">Admin</option>
+                <option value="premium">Premium</option>
+                <option value="vip">VIP</option>
+                {(adminData.isOwner || adminData.isDeveloper) && (
+                  <>
+                    <option value="developer">Developer</option>
+                    <option value="owner">Owner</option>
+                  </>
+                )}
+              </select>
+            </div>
+
+            <button
+              type="submit"
+              disabled={removing}
+              className="w-full bg-red-600 hover:bg-red-700 disabled:bg-neutral-700 text-white font-medium py-2 px-4 rounded-md transition-colors"
+            >
+              {removing ? 'Removing...' : 'Remove Role'}
+            </button>
+          </form>
         </div>
       </div>
     </main>

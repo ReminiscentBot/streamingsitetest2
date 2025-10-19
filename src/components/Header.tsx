@@ -15,14 +15,10 @@ import {
   faChevronDown,
   faSignOutAlt,
   faCog,
-  faUserCircle
+  faUserCircle,
+  faShield
 } from '@fortawesome/free-solid-svg-icons'
 
-// Chrome detection
-const isChrome = () => {
-  if (typeof window === 'undefined') return false
-  return /Chrome/.test(navigator.userAgent) && !/Edge/.test(navigator.userAgent) && !/Firefox/.test(navigator.userAgent)
-}
 
 export default function Header() {
   const { data: session, status } = useSession()
@@ -30,7 +26,6 @@ export default function Header() {
   const router = useRouter()
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const [userUid, setUserUid] = useState<string | null>(null)
-  const [isChromeBrowser, setIsChromeBrowser] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
 
   // Close dropdown when clicking outside
@@ -45,10 +40,6 @@ export default function Header() {
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
-  // Detect Chrome browser
-  useEffect(() => {
-    setIsChromeBrowser(isChrome())
-  }, [])
 
   // Get user UID for profile link
   useEffect(() => {
@@ -69,9 +60,9 @@ export default function Header() {
 
   return (
     <header className="sticky top-0 z-30 bg-neutral-900/70 backdrop-blur border-b border-neutral-800 min-h-[80px]">
-      <div className={`max-w-6xl mx-auto p-4 ${isChromeBrowser ? 'flex items-center justify-between flex-wrap gap-2' : 'flex items-center justify-between'}`}>
+      <div className="max-w-6xl mx-auto p-4 flex items-center justify-between flex-wrap gap-2">
         {/* Logo */}
-        <Link href="/" className={`group relative flex items-center gap-3 px-4 py-3 rounded-xl overflow-hidden ${isChromeBrowser ? 'flex-shrink-0' : ''}`}>
+        <Link href="/" className="group relative flex items-center gap-3 px-4 py-3 rounded-xl overflow-hidden flex-shrink-0">
           {/* Advanced background effects */}
           <div className="absolute inset-0 bg-gradient-to-r from-brand-500/20 via-purple-500/20 to-pink-500/20 opacity-0 group-hover:opacity-100 transition-all duration-700 blur-xl"></div>
           <div className="absolute inset-0 bg-gradient-to-r from-brand-400/10 via-purple-400/10 to-pink-400/10 opacity-0 group-hover:opacity-100 transition-all duration-500"></div>
@@ -116,7 +107,7 @@ export default function Header() {
         
         {/* Search Bar - Hidden on home, movies, and tv pages */}
         {!hideSearchBar && (
-          <div className={`relative hidden md:block ${isChromeBrowser ? 'flex-shrink-0' : ''}`}>
+          <div className="relative hidden md:block flex-shrink-0">
             <FontAwesomeIcon icon={faSearch} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-400 w-4 h-4" />
             <input
               type="text"
@@ -135,7 +126,7 @@ export default function Header() {
         )}
         
         {/* Navigation */}
-        <nav className={`flex items-center gap-2 ${isChromeBrowser ? 'flex-shrink-0' : 'flex-shrink-0 min-w-0'}`}>
+        <nav className="flex items-center gap-2 flex-shrink-0 min-w-0">
           <Link 
             href="/" 
             className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
@@ -187,12 +178,12 @@ export default function Header() {
 
         {/* User Profile / Sign In */}
         {status === 'loading' ? (
-          <div className={`flex items-center gap-3 px-3 py-2 rounded-lg bg-neutral-800/50 border border-neutral-700/50 animate-pulse flex-shrink-0 ${isChromeBrowser ? 'min-w-[120px]' : 'min-w-[120px]'}`}>
+          <div className="flex items-center gap-3 px-3 py-2 rounded-lg bg-neutral-800/50 border border-neutral-700/50 animate-pulse flex-shrink-0 min-w-[120px]">
             <div className="w-8 h-8 bg-neutral-700 rounded-full"></div>
             <div className="w-20 h-4 bg-neutral-700 rounded"></div>
           </div>
         ) : status === 'authenticated' ? (
-          <div className={`relative flex-shrink-0 ${isChromeBrowser ? 'min-w-[120px]' : 'min-w-[120px]'}`} ref={dropdownRef}>
+          <div className="relative flex-shrink-0 min-w-[120px]" ref={dropdownRef}>
             <button
               onClick={() => setDropdownOpen(!dropdownOpen)}
               className="flex items-center gap-3 px-3 py-2 rounded-lg bg-neutral-800/50 hover:bg-neutral-700/50 transition-colors border border-neutral-700/50 whitespace-nowrap min-w-[120px]"
@@ -250,6 +241,15 @@ export default function Header() {
                   >
                     <FontAwesomeIcon icon={faCog} className="w-4 h-4" />
                     Settings
+                  </Link>
+                  
+                  <Link 
+                    href="/admin"
+                    className="flex items-center gap-3 px-4 py-3 text-white hover:bg-neutral-800/50 transition-colors"
+                    onClick={() => setDropdownOpen(false)}
+                  >
+                    <FontAwesomeIcon icon={faShield} className="w-4 h-4" />
+                    Admin Panel
                   </Link>
                   
                   <button
