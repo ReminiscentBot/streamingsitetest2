@@ -17,8 +17,11 @@ interface OnlineStatusData {
 export default function OnlineStatusWidget({ userId }: { userId: string }) {
   const [statusData, setStatusData] = useState<OnlineStatusData | null>(null)
   const [loading, setLoading] = useState(true)
+  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
+    setMounted(true)
+    
     async function fetchStatus() {
       try {
         // Fetch both Discord status and presence data
@@ -48,7 +51,8 @@ export default function OnlineStatusWidget({ userId }: { userId: string }) {
     fetchStatus()
   }, [userId])
 
-  if (loading) {
+  // Prevent hydration mismatch by not rendering until mounted
+  if (!mounted || loading) {
     return (
       <div className="bg-neutral-900/50 backdrop-blur-sm rounded-xl border border-neutral-700/50 p-4">
         <div className="flex items-center gap-3">
