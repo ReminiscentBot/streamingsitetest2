@@ -48,13 +48,25 @@ export default function ContinueWatching() {
     return () => clearInterval(interval)
   }, [])
 
-  if (!items.length) return null
+  // Always show the section for testing, even if no items
+  // if (!items.length) return null
 
   return (
     <section className="mb-12">
       <h2 className="text-2xl font-bold text-white mb-6">Continue Watching</h2>
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-        {items.map((it) => {
+      {items.length === 0 ? (
+        <div className="text-center py-8">
+          <div className="text-neutral-400 mb-4">
+            <svg className="w-16 h-16 mx-auto mb-4 text-neutral-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1m4 0h1m-6 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <p className="text-neutral-400 text-lg mb-2">No content to continue watching</p>
+          <p className="text-neutral-500 text-sm">Start watching movies or TV shows to see your progress here</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+          {items.map((it) => {
           const isTv = it.type === 'tv'
           
           let href = ''
@@ -95,7 +107,8 @@ export default function ContinueWatching() {
             </Link>
           )
         })}
-      </div>
+        </div>
+      )}
     </section>
   )
 }
