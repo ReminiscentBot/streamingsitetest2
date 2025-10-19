@@ -30,35 +30,44 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 })
     }
 
-    // Get all users with their roles and ban status
+    // Get all users with their roles
     const users = await prisma.user.findMany({
       include: {
-        roles: true,
-        bans: {
+        roles: true
+      },
+      orderBy: { createdAt: 'desc' }
+    })
+
+    // Get ban status for each user
+    const usersWithBans = await Promise.all(
+      users.map(async (user) => {
+        const activeBans = await prisma.ban.findMany({
           where: {
+            userId: user.id,
             OR: [
               { bannedUntil: null },
               { bannedUntil: { gt: new Date() } }
             ]
           }
+        })
+
+        return {
+          id: user.id,
+          uid: user.uid,
+          name: user.name,
+          email: user.email,
+          image: user.image,
+          createdAt: user.createdAt,
+          roles: user.roles.map(r => r.name),
+          isBanned: activeBans.length > 0,
+          banReason: activeBans[0]?.reason || null,
+          banExpiry: activeBans[0]?.bannedUntil || null
         }
-      },
-      orderBy: { createdAt: 'desc' }
-    })
+      })
+    )
 
     // Format user data
-    const formattedUsers = users.map(user => ({
-      id: user.id,
-      uid: user.uid,
-      name: user.name,
-      email: user.email,
-      image: user.image,
-      createdAt: user.createdAt,
-      roles: user.roles.map(r => r.name),
-      isBanned: user.bans.length > 0,
-      banReason: user.bans[0]?.reason || null,
-      banExpiry: user.bans[0]?.bannedUntil || null
-    }))
+    const formattedUsers = usersWithBans
 
     return NextResponse.json({ users: formattedUsers })
   } catch (error) {

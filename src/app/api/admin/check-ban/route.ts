@@ -13,27 +13,28 @@ export async function GET(req: NextRequest) {
 
   try {
     const user = await prisma.user.findUnique({
-      where: { email: session.user.email },
-      include: {
-        bans: {
-          where: {
-            OR: [
-              { bannedUntil: null },
-              { bannedUntil: { gt: new Date() } }
-            ]
-          }
-        }
-      }
+      where: { email: session.user.email }
     })
 
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }
 
-    const isBanned = user.bans.length > 0
+    // Check for active bans
+    const activeBans = await prisma.ban.findMany({
+      where: {
+        userId: user.id,
+        OR: [
+          { bannedUntil: null },
+          { bannedUntil: { gt: new Date() } }
+        ]
+      }
+    })
+
+    const isBanned = activeBans.length > 0
     const banInfo = isBanned ? {
-      reason: user.bans[0].reason,
-      bannedUntil: user.bans[0].bannedUntil
+      reason: activeBans[0].reason,
+      bannedUntil: activeBans[0].bannedUntil
     } : null
 
     return NextResponse.json({ 
