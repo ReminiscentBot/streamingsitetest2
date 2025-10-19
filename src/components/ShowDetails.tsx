@@ -175,6 +175,12 @@ export default function ShowDetails({ tmdbId, type, currentEpisode, currentSeaso
               <FontAwesomeIcon icon={faStar} className="text-yellow-400" />
               {showData.vote_average.toFixed(1)} ({showData.vote_count.toLocaleString()})
             </span>
+            {websiteRating && websiteRating.count > 0 && (
+              <span className="flex items-center gap-1">
+                <FontAwesomeIcon icon={faStar} className="text-brand-400" />
+                {websiteRating.average.toFixed(1)} ({websiteRating.count})
+              </span>
+            )}
             <span className="flex items-center gap-1">
               <FontAwesomeIcon icon={faCalendar} />
               {startDate}
