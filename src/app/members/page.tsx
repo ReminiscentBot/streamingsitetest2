@@ -83,12 +83,20 @@ async function getMembersStats() {
         roles: true
       },
       where: {
-        profile: {
-          isNot: null,
-          lastActiveAt: {
-            gte: fiveMinutesAgo
+        AND: [
+          {
+            profile: {
+              isNot: null
+            }
+          },
+          {
+            profile: {
+              lastActiveAt: {
+                gte: fiveMinutesAgo
+              }
+            }
           }
-        }
+        ]
       },
       orderBy: {
         profile: {
