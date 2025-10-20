@@ -29,6 +29,15 @@ export default function VideoPlayer({
   hasPrevEpisode = false
 }: VideoPlayerProps) {
   const playerRef = useRef<HTMLDivElement>(null)
+  
+  // Debug logging to check what's being passed to VideoPlayer
+  console.log('🎥 VideoPlayer props:', {
+    src: src,
+    title: title,
+    srcLength: src?.length,
+    srcType: typeof src,
+    isEmpty: !src || src === ''
+  })
 
   useEffect(() => {
     const handlePlayerClick = () => {
@@ -55,14 +64,18 @@ export default function VideoPlayer({
         className="relative w-full aspect-video bg-black rounded-lg overflow-hidden border border-neutral-800 cursor-pointer"
       >
         <iframe
-          src={src}
+          src={src && src.trim() ? src : undefined}
           allowFullScreen
           allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
           referrerPolicy="no-referrer"
           loading="lazy"
           className="w-full h-full"
           onLoad={onLoad}
-          onError={onError}
+          onError={(e) => {
+            console.error('🚨 Iframe load error:', e)
+            console.error('🚨 Failed to load src:', src)
+            if (onError) onError()
+          }}
         />
         {/* Removed blur overlay - no longer blurring video player */}
       </div>
