@@ -8,6 +8,7 @@ import ShowDetails from '@/components/ShowDetails'
 import VideoPlayer from '@/components/VideoPlayer'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faBars, faSearch, faBell, faUser, faTh, faList, faFilter } from '@fortawesome/free-solid-svg-icons'
+import { getStreamingUrl, setupStreamingEventListeners, StreamingResult } from '@/lib/streaming'
 
 export default function WatchPage({ params }: { params: { id: string } }) {
   const search = useSearchParams()
@@ -30,6 +31,12 @@ export default function WatchPage({ params }: { params: { id: string } }) {
   const [currentEpisodeData, setCurrentEpisodeData] = useState<any>(null)
   const [showData, setShowData] = useState<any>(null)
   const [lastTrackedShow, setLastTrackedShow] = useState<string | null>(null)
+  
+  // New streaming service states
+  const [streamingResult, setStreamingResult] = useState<StreamingResult | null>(null)
+  const [streamingLoading, setStreamingLoading] = useState(false)
+  const [streamingError, setStreamingError] = useState<string | null>(null)
+  const [isAnime, setIsAnime] = useState(false)
 
   // Track presence when component mounts
   useEffect(() => {
@@ -94,11 +101,65 @@ export default function WatchPage({ params }: { params: { id: string } }) {
     }
   }
 
+  // Setup streaming event listeners on mount
+  useEffect(() => {
+    setupStreamingEventListeners()
+  }, [])
+
+  // Get streaming URL when parameters change
+  useEffect(() => {
+    const getStreamingUrlAsync = async () => {
+      if (!params.id) return
+
+      setStreamingLoading(true)
+      setStreamingError(null)
+
+      try {
+        console.log('🎬 Getting streaming URL for:', { tmdbId: params.id, type, season, episode })
+        
+        const result = await getStreamingUrl(
+          params.id,
+          type as 'movie' | 'tv',
+          isTv ? season : undefined,
+          isTv ? episode : undefined,
+          showData, // Pass TMDB data for anime detection
+          {
+            autoPlay: true,
+            title: true,
+            poster: true,
+            nextButton: isTv,
+            autoNext: isTv,
+            episodeSelector: isTv,
+            overlay: true
+          }
+        )
+
+        if (result) {
+          setStreamingResult(result)
+          setIsAnime(result.isAnime)
+          console.log('✅ Streaming URL found:', result.url)
+          console.log('🎌 Is anime:', result.isAnime)
+          console.log('🔧 Service:', result.service)
+        } else {
+          setStreamingError('No streaming sources available')
+          console.log('❌ No streaming sources found')
+        }
+      } catch (error) {
+        console.error('❌ Error getting streaming URL:', error)
+        setStreamingError('Failed to load streaming sources')
+      } finally {
+        setStreamingLoading(false)
+      }
+    }
+
+    getStreamingUrlAsync()
+  }, [params.id, type, season, episode, showData])
+
+  // Get the current streaming URL
   const src = useMemo(() => {
-    return isTv
-      ? `https://vidsrc.wtf/api/${apiVersion}/tv/?id=${params.id}&s=${season}&e=${episode}`
-      : `https://vidsrc.wtf/api/${apiVersion}/movie/?id=${params.id}`
-  }, [isTv, params.id, season, episode, apiVersion])
+    if (!streamingResult) return ''
+    return streamingResult.url
+  }, [streamingResult])
 
   // Mark the current API as attempted whenever we switch to it
   useEffect(() => {
@@ -305,63 +366,101 @@ export default function WatchPage({ params }: { params: { id: string } }) {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Center Column - Video Player and Show Details */}
             <div className="lg:col-span-2 space-y-6">
-              {/* Debug Controls - Above Player */}
+              {/* Streaming Status - Above Player */}
               <div className="bg-neutral-900/70 border border-neutral-800 rounded-lg p-4">
-                <div className="flex items-center justify-center gap-3 flex-wrap text-sm">
-                  <label className="text-white">Player</label>
-                  <select 
-                    value={apiVersion} 
-                    onChange={(e) => {
-                      setApiVersion(e.target.value as any)
-                      setUserInteracted(true)
-                    }} 
-                    className="rounded-md bg-neutral-800 border border-neutral-700 px-3 py-1 text-white text-xs"
-                  >
-                    <option value="1">API 1</option>
-                    <option value="2">API 2</option>
-                    <option value="3">API 3</option>
-                    <option value="4">API 4</option>
-                  </select>
-                  <label className="text-white flex items-center gap-1">
-                    <input type="checkbox" checked={autoMode} onChange={(e) => setAutoMode(e.target.checked)} className="rounded" />
-                    Auto
-                  </label>
+                <div className="flex items-center justify-between flex-wrap gap-3 text-sm">
+                  <div className="flex items-center gap-3">
+                    <label className="text-white">Streaming Service</label>
+                    {streamingLoading && (
+                      <div className="flex items-center gap-2 text-blue-400">
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-400"></div>
+                        <span>Loading...</span>
+                      </div>
+                    )}
+                    {streamingResult && (
+                      <div className="flex items-center gap-2">
+                        <span className={`px-2 py-1 rounded text-xs font-medium ${
+                          streamingResult.service === 'vidfast' 
+                            ? 'bg-green-600/20 text-green-400 border border-green-600/30'
+                            : 'bg-blue-600/20 text-blue-400 border border-blue-600/30'
+                        }`}>
+                          {streamingResult.service === 'vidfast' ? 'VidFast.pro' : 'VideoEasy.net'}
+                        </span>
+                        {streamingResult.isAnime && (
+                          <span className="px-2 py-1 rounded text-xs font-medium bg-purple-600/20 text-purple-400 border border-purple-600/30">
+                            🎌 Anime
+                          </span>
+                        )}
+                        {streamingResult.fallbackUsed && (
+                          <span className="px-2 py-1 rounded text-xs font-medium bg-yellow-600/20 text-yellow-400 border border-yellow-600/30">
+                            Fallback
+                          </span>
+                        )}
+                      </div>
+                    )}
+                    {streamingError && (
+                      <div className="text-red-400 text-xs">
+                        {streamingError}
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Legacy API controls (hidden for now) */}
+                  <div className="hidden">
+                    <select 
+                      value={apiVersion} 
+                      onChange={(e) => {
+                        setApiVersion(e.target.value as any)
+                        setUserInteracted(true)
+                      }} 
+                      className="rounded-md bg-neutral-800 border border-neutral-700 px-3 py-1 text-white text-xs"
+                    >
+                      <option value="1">API 1</option>
+                      <option value="2">API 2</option>
+                      <option value="3">API 3</option>
+                      <option value="4">API 4</option>
+                    </select>
+                    <label className="text-white flex items-center gap-1">
+                      <input type="checkbox" checked={autoMode} onChange={(e) => setAutoMode(e.target.checked)} className="rounded" />
+                      Auto
+                    </label>
+                  </div>
                 </div>
               </div>
 
               {/* Video Player */}
               <VideoPlayer
                 src={src}
-                title={mediaData?.title || 'Loading...'}
+                title={showData?.title || showData?.name || 'Loading...'}
                 blurPlayer={blurPlayer}
                 onError={() => {
-                  console.log('Iframe failed to load, trying next API...')
-                  if (window.location.protocol === 'https:' && src.includes('vidsrc')) {
-                    setSslError(true)
-                  }
-                  const fallbackOrder = ['3','4','1','2']
-                  const currentIndex = fallbackOrder.indexOf(apiVersion)
-                  if (currentIndex < fallbackOrder.length - 1) {
-                    const nextApi = fallbackOrder[currentIndex + 1] as '1' | '2' | '3' | '4'
-                    setApiVersion(nextApi)
-                  } else {
-                    setAllApisFailed(true)
-                  }
+                  console.log('🚨 Streaming service failed, trying fallback...')
+                  setStreamingError('Streaming service unavailable, trying fallback...')
+                  
+                  // The streaming service will automatically try fallbacks
+                  // This is just for UI feedback
                 }}
-                onLoad={() => setUserInteracted(false)}
-                onPlayerStart={() => setBlurPlayer(false)}
+                onLoad={() => {
+                  console.log('✅ Video player loaded successfully')
+                  setStreamingError(null)
+                  setAllApisFailed(false)
+                }}
+                onPlayerStart={() => {
+                  setBlurPlayer(false)
+                  setUserInteracted(true)
+                }}
                 onNextEpisode={() => {
-                  if (isTv) {
-                    setEpisode(episode + 1)
+                  if (isTv && currentEpisodeData?.nextEpisode) {
+                    setEpisode(currentEpisodeData.nextEpisode)
                   }
                 }}
                 onPrevEpisode={() => {
-                  if (isTv && episode > 1) {
-                    setEpisode(episode - 1)
+                  if (isTv && currentEpisodeData?.prevEpisode) {
+                    setEpisode(currentEpisodeData.prevEpisode)
                   }
                 }}
-                hasNextEpisode={isTv}
-                hasPrevEpisode={isTv && episode > 1}
+                hasNextEpisode={isTv && !!currentEpisodeData?.nextEpisode}
+                hasPrevEpisode={isTv && !!currentEpisodeData?.prevEpisode}
               />
 
               {/* Episode Information - Below Player */}

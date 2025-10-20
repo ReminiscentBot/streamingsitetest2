@@ -7,6 +7,7 @@ const TMDB_BASE_URL = 'https://api.themoviedb.org/3'
 
 export async function GET(request: NextRequest) {
   try {
+    console.log('🔍 Episodes API - request.url:', request.url)
     const { searchParams } = new URL(request.url)
     const id = searchParams.get('id')
     const season = searchParams.get('season')
