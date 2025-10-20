@@ -21,7 +21,7 @@ export default async function Home() {
         {/* Hero Section */}
         <div className="text-center mb-12">
           <h1 className="text-5xl font-bold text-white mb-4">
-            Welcome to <span className="text-brand-400">Reminiscent</span>
+            Welcome to <span className="text-brand-400">CacheTomb</span>
           </h1>
           <p className="text-xl text-neutral-400 mb-8">
             Your ultimate destination for movies and TV shows

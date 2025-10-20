@@ -86,7 +86,7 @@ export default function Header() {
               {/* Advanced text with multiple effects - Cross-browser compatible */}
               <span className="relative z-10 text-2xl font-black text-brand-400 group-hover:text-white transition-all duration-700 group-hover:scale-110 group-hover:animate-pulse">
                 <span className="relative">
-                  Reminiscent
+                  CacheTomb
                   {/* Animated underline */}
                   <div className="absolute -bottom-1 left-0 w-0 h-1 bg-gradient-to-r from-brand-400 to-pink-400 group-hover:w-full transition-all duration-700"></div>
                   {/* Floating particles effect */}
@@ -162,6 +162,7 @@ export default function Header() {
             <FontAwesomeIcon icon={faTv} className="w-4 h-4" />
             <span className="hidden sm:inline">TV Shows</span>
           </Link>
+          
           
           <Link 
             href="/members" 

@@ -40,40 +40,40 @@ export async function POST(request: NextRequest) {
       update: {
         lastActiveAt: new Date(),
         // Update current watching
-        currentWatchingId: tmdbId || null,
+        currentWatchingId: tmdbId ? parseInt(tmdbId) : null,
         currentWatchingTitle: title,
         currentWatchingType: type,
         currentWatchingSeason: season || null,
         currentWatchingEpisode: episode || null,
         currentWatchingPoster: poster || null,
-        currentWatchingTmdbId: tmdbId || null,
+        currentWatchingTmdbId: tmdbId ? parseInt(tmdbId) : null,
         // Also update last watching (this becomes the last watched)
-        lastWatchingId: tmdbId || null,
+        lastWatchingId: tmdbId ? parseInt(tmdbId) : null,
         lastWatchingTitle: title,
         lastWatchingType: type,
         lastWatchingSeason: season || null,
         lastWatchingEpisode: episode || null,
         lastWatchingPoster: poster || null,
-        lastWatchingTmdbId: tmdbId || null
+        lastWatchingTmdbId: tmdbId ? parseInt(tmdbId) : null
       },
       create: {
         userId: user.id,
         lastActiveAt: new Date(),
         // Set both current and last watching
-        currentWatchingId: tmdbId || null,
+        currentWatchingId: tmdbId ? parseInt(tmdbId) : null,
         currentWatchingTitle: title,
         currentWatchingType: type,
         currentWatchingSeason: season || null,
         currentWatchingEpisode: episode || null,
         currentWatchingPoster: poster || null,
-        currentWatchingTmdbId: tmdbId || null,
-        lastWatchingId: tmdbId || null,
+        currentWatchingTmdbId: tmdbId ? parseInt(tmdbId) : null,
+        lastWatchingId: tmdbId ? parseInt(tmdbId) : null,
         lastWatchingTitle: title,
         lastWatchingType: type,
         lastWatchingSeason: season || null,
         lastWatchingEpisode: episode || null,
         lastWatchingPoster: poster || null,
-        lastWatchingTmdbId: tmdbId || null
+        lastWatchingTmdbId: tmdbId ? parseInt(tmdbId) : null
       }
     })
     

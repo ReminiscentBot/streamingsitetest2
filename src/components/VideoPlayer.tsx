@@ -57,6 +57,7 @@ export default function VideoPlayer({
         <iframe
           src={src}
           allowFullScreen
+          allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
           referrerPolicy="no-referrer"
           loading="lazy"
           className="w-full h-full"

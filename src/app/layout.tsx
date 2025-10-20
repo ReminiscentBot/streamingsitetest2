@@ -5,7 +5,7 @@ import Header from '@/components/Header'
 import PresenceHeartbeat from '@/components/PresenceHeartbeat'
 
 export const metadata: Metadata = {
-  title: 'Reminiscent Streaming',
+  title: 'CacheTomb Streaming',
   description: 'Streaming with Vidsrc + TMDB',
 }
 
