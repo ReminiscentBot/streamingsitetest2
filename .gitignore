@@ -1,0 +1,11 @@
+.env*
+!.env.example
+.next/
+node_modules/
+.turbo/
+.vercel/
+dist/
+coverage/
+*.log
+
+.vercel

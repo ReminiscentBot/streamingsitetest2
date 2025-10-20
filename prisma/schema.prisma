@@ -1,0 +1,211 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id               String   @id @default(cuid())
+  uid              Int      @unique
+  email            String?  @unique
+  name             String?
+  image            String?
+  discordId        String?  @unique
+  banner           String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  watchlists       Watchlist[]
+  profile          Profile?
+  roles            Role[]
+  ratings          Rating[]
+  comments         ProfileComment[]
+  reports          Report[]
+  commentLikes     CommentLike[]
+  presence         Presence?
+  profileViews     ProfileView[]
+  searches         Search[]
+}
+
+model DiscordPresence {
+  id           String   @id @default(uuid())
+  userId       String   @unique // Discord user ID
+  status       String   // 'online', 'idle', 'dnd', 'offline'
+  activityName String?  // Optional activity name
+  activityType String?  // Optional activity type
+  updatedAt    DateTime @updatedAt
+}
+
+model Watchlist {
+  id        String   @id @default(cuid())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  tmdbId    Int
+  type      String  // 'movie' or 'tv'
+  title     String
+  poster    String?
+  createdAt DateTime @default(now())
+
+  @@unique([userId, tmdbId], name: "userId_tmdbId")
+}
+
+model Profile {
+  id             String   @id @default(cuid())
+  user           User     @relation(fields: [userId], references: [id])
+  userId         String   @unique
+  bio            String?  @db.Text
+  themeAccent    String?  // hex color
+  banner         String?
+  customAvatar   String?
+  customBanner   String?
+  lastActiveAt   DateTime @default(now())
+  
+  // Currently Watching (real-time)
+  currentWatchingId Int?
+  currentWatchingType String? // 'movie' | 'tv'
+  currentWatchingSeason Int?
+  currentWatchingEpisode Int?
+  currentWatchingTitle  String?
+  currentWatchingPoster String?
+  currentWatchingTmdbId Int?
+  
+  // Last Watching (persistent)
+  lastWatchingId Int?
+  lastWatchingType String? // 'movie' | 'tv'
+  lastWatchingSeason Int?
+  lastWatchingEpisode Int?
+  lastWatchingTitle  String?
+  lastWatchingPoster String?
+  lastWatchingTmdbId Int?
+  
+  // Premium/VIP Customization
+  profileLayout     String?   @default("default") // 'default' | 'compact' | 'minimal' | 'detailed'
+  showStats         Boolean   @default(true)
+  showLastWatching  Boolean   @default(true)
+  showComments      Boolean   @default(true)
+  customCss         String?   @db.Text // VIP only - custom CSS
+  profileBadges     String[]  @default([]) // VIP only - custom badges
+  profileEffects    String[]  @default([]) // VIP only - visual effects
+  
+  views          ProfileView[]
+  comments       ProfileComment[]
+}
+
+model ProfileView {
+  id        String   @id @default(cuid())
+  profile   Profile  @relation(fields: [profileId], references: [id])
+  profileId String
+  viewerId  String?
+  viewer    User?    @relation(fields: [viewerId], references: [id])
+  createdAt DateTime @default(now())
+  @@index([profileId, createdAt])
+}
+
+model ProfileComment {
+  id        String   @id @default(cuid())
+  profile   Profile  @relation(fields: [profileId], references: [id])
+  profileId String
+  author    User     @relation(fields: [authorId], references: [id])
+  authorId  String
+  body      String
+  likes     Int      @default(0)
+  createdAt DateTime @default(now())
+  reports   Report[]
+  likedBy   CommentLike[]
+  @@index([profileId, createdAt])
+}
+
+model CommentLike {
+  id        String   @id @default(cuid())
+  comment   ProfileComment @relation(fields: [commentId], references: [id])
+  commentId String
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  createdAt DateTime @default(now())
+  @@unique([commentId, userId])
+}
+
+model Presence {
+  id          String   @id @default(cuid())
+  user        User     @relation(fields: [userId], references: [id])
+  userId      String   @unique
+  currentPage String?  // Track what page the user is currently on
+  pageType    String?  // Track the type of page (e.g., 'browsing', 'watching')
+  mediaType   String?  // Track media type for watch pages (e.g., 'tv', 'movie')
+  updatedAt   DateTime @updatedAt
+  now         DateTime @default(now())
+}
+
+model Role {
+  id        String   @id @default(cuid())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  name      String   // 'owner' | 'developer' | 'admin' | 'moderator' | 'trial_mod' | 'premium' | 'vip'
+  createdAt DateTime @default(now())
+  
+  @@unique([userId, name], name: "userId_name")
+}
+
+model Ban {
+  id        String   @id @default(cuid())
+  userId    String?
+  ip        String?
+  reason    String?
+  bannedUntil DateTime?
+  createdAt DateTime @default(now())
+  @@index([userId])
+  @@index([ip])
+}
+
+model Invite {
+  id        String   @id @default(cuid())
+  code      String   @unique
+  issuerId  String?
+  uses      Int      @default(0)
+  maxUses   Int      @default(1)
+  createdAt DateTime @default(now())
+}
+
+model Report {
+  id         String   @id @default(cuid())
+  comment    ProfileComment @relation(fields: [commentId], references: [id])
+  commentId  String
+  reporter   User     @relation(fields: [reporterId], references: [id])
+  reporterId String
+  reason     String
+  details    String?
+  status     String   @default("pending") // pending, reviewed, resolved
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model Rating {
+  id        String   @id @default(cuid())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  tmdbId    Int
+  type      String   // 'movie' | 'tv'
+  rating    Int      // 1-5 stars
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, tmdbId, type], name: "user_tmdb_type")
+  @@index([tmdbId, type])
+  @@index([rating])
+}
+
+model Search {
+  id        String   @id @default(cuid())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  query     String
+  results   Int      // Number of results returned
+  createdAt DateTime @default(now())
+  
+  @@index([userId, createdAt])
+  @@index([query])
+}
+
+
