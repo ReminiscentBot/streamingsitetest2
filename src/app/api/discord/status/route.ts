@@ -1,72 +1,65 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
+import { PrismaClient } from '@prisma/client'
 
 export async function GET(req: NextRequest) {
+  const { searchParams } = new URL(req.url)
   const session = await getServerSession(authOptions)
   if (!session?.user?.email) {
     return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
   }
 
+  const uidParam = searchParams.get('uid')
+
+  if (!uidParam) {
+    return NextResponse.json({ error: 'Missing uid' }, { status: 400 })
+  }
+
+  const prisma = new PrismaClient()
+
   try {
-    // Get user's presence data to determine real status
-    const { PrismaClient } = await import('@prisma/client')
-    const prisma = new PrismaClient()
-    
+    // Get the user's Discord ID from your user table
     const user = await prisma.user.findUnique({
-      where: { email: session.user.email },
-      include: { 
-        profile: true,
-        presence: true
-      }
+      where: { id: uidParam },
+      select: { discordId: true, profile: true }
     })
 
-    if (!user) {
-      await prisma.$disconnect()
-      return NextResponse.json({ error: 'User not found' }, { status: 404 })
+    if (!user?.discordId) {
+      return NextResponse.json({ error: 'Discord ID not found' }, { status: 404 })
     }
 
-    // Determine real status based on presence data
-    let status = 'offline'
-    let activity = null
+    // Fetch presence from DiscordPresence table
+    const presence = await prisma.discordPresence.findUnique({
+      where: { userId: user.discordId }
+    })
 
-    // Check if user is currently active (within last 2 minutes for Discord - more strict)
+    if (!presence) {
+      return NextResponse.json({ status: 'offline', activities: [] })
+    }
+
     const twoMinutesAgo = new Date(Date.now() - 2 * 60 * 1000)
     const isCurrentlyActive = user.profile?.lastActiveAt && new Date(user.profile.lastActiveAt) > twoMinutesAgo
 
-    if (isCurrentlyActive) {
-      status = 'online'
-      
-      // If user has current page data, show that as activity
-      if (user.presence?.currentPage) {
-        activity = {
-          name: user.presence.currentPage,
-          type: 'PLAYING',
-          details: 'On the streaming platform'
-        }
-      }
-      
-      // If user has current watching data, show that instead
-      if (user.profile?.currentWatchingTitle) {
-        activity = {
-          name: user.profile.currentWatchingTitle,
-          type: 'WATCHING',
-          details: user.profile.currentWatchingType === 'tv' 
-            ? `Season ${user.profile.currentWatchingSeason}, Episode ${user.profile.currentWatchingEpisode}`
-            : 'Movie'
-        }
-      }
-    }
+    const websiteStatus = isCurrentlyActive ? 'online' : 'offline'
 
     const result = {
-      status,
-      activities: activity ? [activity] : []
+      status: presence.status,
+      websiteStatus: websiteStatus,
+      activities: presence.activityName
+        ? [{
+            name: presence.activityName,
+            type: presence.activityType || 'UNKNOWN',
+            details: 'Live from Discord'
+          }]
+        : []
     }
 
-    await prisma.$disconnect()
     return NextResponse.json(result)
   } catch (error) {
     console.error('Error fetching Discord status:', error)
     return NextResponse.json({ error: 'Failed to fetch status' }, { status: 500 })
+  } finally {
+    await prisma.$disconnect()
   }
 }

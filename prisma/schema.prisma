@@ -29,6 +29,15 @@ model User {
   searches         Search[]
 }
 
+model DiscordPresence {
+  id           String   @id @default(uuid())
+  userId       String   @unique // Discord user ID
+  status       String   // 'online', 'idle', 'dnd', 'offline'
+  activityName String?  // Optional activity name
+  activityType String?  // Optional activity type
+  updatedAt    DateTime @updatedAt
+}
+
 model Watchlist {
   id        String   @id @default(cuid())
   user      User     @relation(fields: [userId], references: [id])

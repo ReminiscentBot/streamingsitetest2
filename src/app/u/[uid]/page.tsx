@@ -168,9 +168,12 @@ export default function UserProfile({ params }: { params: { uid: string } }) {
                   
                   {isMe && (
                     <div className="flex gap-2">
-                      <button className="px-3 py-1.5 bg-neutral-700 hover:bg-neutral-600 text-white text-xs rounded-md transition-colors font-medium">
-                        Edit Profile
-                      </button>
+                      <a
+                        href="/settings"
+                        className="px-3 py-1.5 bg-neutral-700 hover:bg-neutral-600 text-white text-xs rounded-md transition-colors font-medium"
+                      >
+                      Edit Profile
+                      </a>
                     </div>
                   )}
                 </div>

@@ -1,11 +1,13 @@
 "use client"
 import { useEffect, useState } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faCircle, faGlobe } from '@fortawesome/free-solid-svg-icons'
+import { faCircle, faGlobe, faComputer } from '@fortawesome/free-solid-svg-icons'
+import { faDiscord } from '@fortawesome/free-brands-svg-icons'
 import Image from 'next/image'
 
 interface OnlineStatusData {
-  status: 'online' | 'idle' | 'dnd' | 'offline'
+  websiteSatus: 'online' | 'idle' | 'offline'
+  discordStatus: 'online' | 'idle' | 'dnd' | 'offline'
   activity?: {
     name: string
     type: string
@@ -28,7 +30,7 @@ export default function OnlineStatusWidget({ userId }: { userId: string }) {
       try {
         // Fetch both Discord status and presence data
         const [discordRes, presenceRes] = await Promise.all([
-          fetch('/api/discord/status'),
+          fetch(`/api/discord/status?uid=${encodeURIComponent(userId)}`),
           fetch('/api/presence')
         ])
         
@@ -39,7 +41,8 @@ export default function OnlineStatusWidget({ userId }: { userId: string }) {
         const userPresence = presenceData?.online?.find((p: any) => p.user.id === userId)
         
         setStatusData({
-          status: discordData?.status || 'offline',
+          websiteSatus: discordData?.websiteStatus || 'offline',
+          discordStatus: discordData?.status || 'offline',
           activity: discordData?.activities?.[0],
           currentPage: userPresence?.currentPage,
           pageType: userPresence?.pageType,
@@ -97,17 +100,37 @@ export default function OnlineStatusWidget({ userId }: { userId: string }) {
         {/* Discord Status */}
         <div className="flex items-center gap-3">
           <div className="relative">
+            <FontAwesomeIcon icon={faDiscord} />
+          </div>
+
+          {/* Group status text and circle together */}
+          <div className="flex items-center gap-2">
+            <div className="text-sm font-medium text-white">
+              Discord Status:
+            </div>
             <FontAwesomeIcon 
               icon={faCircle} 
-              className={`w-3 h-3 ${getStatusColor(statusData.status)}`}
+              className={`w-3 h-3 ${getStatusColor(statusData.discordStatus)}`}
             />
           </div>
-          <div className="flex-1">
+        </div>
+
+        <div className="flex items-center gap-3">
+          {/* Group circle and text together */}
+          <div className="flex items-center gap-2">
+            <FontAwesomeIcon 
+              icon={faComputer}
+            />
             <div className="text-sm font-medium text-white">
-              Discord Status: {getStatusText(statusData.status)}
+              Website Status:
             </div>
+            <FontAwesomeIcon 
+              icon={faCircle} 
+              className={`w-3 h-3 ${getStatusColor(statusData.websiteSatus)}`}
+            />
           </div>
         </div>
+        
         
         
         {/* Current Page */}
