@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { useSession } from 'next-auth/react'
+import NotSignedIn from '@/components/NotSignedIn'
 
 interface TVShow {
   id: number
@@ -14,10 +16,25 @@ interface TVShow {
 }
 
 export default function TVPage() {
+  const { data: session, status } = useSession()
   const [tvShows, setTvShows] = useState<TVShow[]>([])
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
   const [searchResults, setSearchResults] = useState<TVShow[]>([])
+
+  // Show loading spinner while session is being checked
+  if (status === 'loading') {
+    return (
+      <main className="flex items-center justify-center min-h-screen bg-neutral-900">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-400"></div>
+      </main>
+    )
+  }
+
+  // If user is not signed in, show the same component as home
+  if (!session?.user?.email) {
+    return <NotSignedIn />
+  }
 
   useEffect(() => {
     loadPopularTVShows()

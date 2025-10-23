@@ -144,7 +144,10 @@ export async function DELETE(req: NextRequest) {
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    console.error('Error deleting comment:', error)
+    // 👇👇👇 ADD THIS
+    console.error("Error deleting comment:", error)
+    // 👆 This prints the real issue in your terminal where Next.js runs.
+
     return NextResponse.json({ error: 'Failed to delete comment' }, { status: 500 })
   }
 }

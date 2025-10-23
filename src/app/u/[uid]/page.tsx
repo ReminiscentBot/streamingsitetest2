@@ -8,6 +8,7 @@ import AdminBadge from '@/components/AdminBadge'
 import { ToastContainer } from '@/components/Toast'
 import { useToast } from '@/hooks/useToast'
 import { formatLastActive } from '@/lib/timeUtils'
+import NotSignedIn from '@/components/NotSignedIn'
 
 export default function UserProfile({ params }: { params: { uid: string } }) {
   const { data: session, status } = useSession()
@@ -56,6 +57,12 @@ export default function UserProfile({ params }: { params: { uid: string } }) {
     fetchProfile()
   }, [params.uid, session?.user?.email])
 
+    // 🔒 If user is not signed in
+  if (status === "unauthenticated") {
+    return <NotSignedIn />;
+  }
+
+
   if (loading) {
     return (
       <div className="min-h-screen bg-neutral-900 flex items-center justify-center">
@@ -102,6 +109,7 @@ export default function UserProfile({ params }: { params: { uid: string } }) {
 
   const isMe = session?.user?.email === data?.user?.email
   const themeColor = data?.profile?.themeAccent || '#8b5cf6'
+  let commentLikeCount = 0
 
   return (
     <main className="min-h-screen bg-neutral-900">
@@ -440,6 +448,7 @@ export default function UserProfile({ params }: { params: { uid: string } }) {
                                     : comment
                                 )
                               }))
+
                             } else {
                               showError('Failed to like comment')
                             }
@@ -470,23 +479,22 @@ export default function UserProfile({ params }: { params: { uid: string } }) {
                       {session && (
                         <button 
                         onClick={async () => {
-                          if (confirm('Are you sure you want to delete this comment?')) {
-                            try {
-                              const res = await fetch('/api/comments', {
-                                method: 'DELETE',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ commentId: c.id })
-                              })
-                              if (res.ok) {
-                                showSuccess('Comment deleted successfully')
-                                window.location.reload()
-                              } else {
-                                showError('Failed to delete comment')
-                              }
-                            } catch (error) {
-                              console.error('Error deleting comment:', error)
+                          if (!confirm('Are you sure you want to delete this comment?')) return
+                          try {
+                            const res = await fetch('/api/comments', {
+                              method: 'DELETE',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({ commentId: c.id })
+                            })
+                            if (res.ok) {
+                              showSuccess('Comment deleted successfully')
+                              window.location.reload()
+                            } else {
                               showError('Failed to delete comment')
                             }
+                          } catch (error) {
+                            console.error('Error deleting comment:', error)
+                            showError('Failed to delete comment')
                           }
                         }}
                           className="flex items-center gap-1 px-2 py-1 bg-red-600/20 hover:bg-red-600/30 rounded text-xs text-red-400 transition-colors"

@@ -27,6 +27,15 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }
 
+    // Find Comment In Database by ID
+    const comment = await prisma.profileComment.findUnique({
+      where: { id: commentId }
+    })
+
+    if (!comment) {
+      return NextResponse.json({ error: 'Comment not found' }, { status: 404 })
+    }
+
     // Check if user already liked this comment
     const existingLike = await prisma.commentLike.findFirst({
       where: {
@@ -40,7 +49,15 @@ export async function POST(req: NextRequest) {
       await prisma.commentLike.delete({
         where: { id: existingLike.id }
       })
-      return NextResponse.json({ liked: false })
+
+      const updated = await prisma.profileComment.update({
+        where: { id: commentId },
+        data: {
+          likes: { decrement: 1 }
+        }
+      })
+
+      return NextResponse.json({ liked: false, likes: updated.likes })
     } else {
       // Like the comment
       await prisma.commentLike.create({
@@ -49,7 +66,14 @@ export async function POST(req: NextRequest) {
           userId: user.id
         }
       })
-      return NextResponse.json({ liked: true })
+
+      const updated = await prisma.profileComment.update({
+        where: { id: commentId },
+        data: {
+          likes: { increment: 1 }
+        }
+      })
+      return NextResponse.json({ liked: true, likes: updated.likes })
     }
   } catch (error) {
     console.error('Error toggling comment like:', error)

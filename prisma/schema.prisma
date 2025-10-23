@@ -114,17 +114,15 @@ model ProfileComment {
   createdAt DateTime @default(now())
   reports   Report[]
   likedBy   CommentLike[]
-  @@index([profileId, createdAt])
 }
 
 model CommentLike {
   id        String   @id @default(cuid())
-  comment   ProfileComment @relation(fields: [commentId], references: [id])
+  comment   ProfileComment @relation(fields: [commentId], references: [id], onDelete: Cascade)
   commentId String
   user      User     @relation(fields: [userId], references: [id])
   userId    String
   createdAt DateTime @default(now())
-  @@unique([commentId, userId])
 }
 
 model Presence {
@@ -170,13 +168,13 @@ model Invite {
 
 model Report {
   id         String   @id @default(cuid())
-  comment    ProfileComment @relation(fields: [commentId], references: [id])
+  comment    ProfileComment @relation(fields: [commentId], references: [id], onDelete: Cascade)
   commentId  String
   reporter   User     @relation(fields: [reporterId], references: [id])
   reporterId String
   reason     String
   details    String?
-  status     String   @default("pending") // pending, reviewed, resolved
+  status     String   @default("pending")
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 }

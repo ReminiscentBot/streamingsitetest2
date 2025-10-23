@@ -6,7 +6,7 @@ import Image from 'next/image'
 import SettingsForm from './SettingsForm'
 import { ToastContainer } from '@/components/Toast'
 import { useToast } from '@/hooks/useToast'
-
+import NotSignedIn from '@/components/NotSignedIn'
 type SettingsTab = 'profile' | 'discord' | 'privacy' | 'notifications'
 
 export default function SettingsPage() {
@@ -41,7 +41,8 @@ export default function SettingsPage() {
           setLoading(false)
         }
       } else if (status === 'unauthenticated') {
-        setLoading(false)
+          setLoading(false)
+          //return <NotSignedIn />
       }
     }
 

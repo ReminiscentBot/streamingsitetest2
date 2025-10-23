@@ -10,8 +10,11 @@ import PopupBlockerBanner from '@/components/PopupBlockerBanner'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faBars, faSearch, faBell, faUser, faTh, faList, faFilter } from '@fortawesome/free-solid-svg-icons'
 import { getStreamingUrl, setupStreamingEventListeners, StreamingResult } from '@/lib/streaming'
+import { useSession } from 'next-auth/react'
+import NotSignedIn from '@/components/NotSignedIn'
 
 export default function WatchPage({ params }: { params: { id: string } }) {
+    const { data: session, status } = useSession()
   const search = useSearchParams()
   const type = (search?.get('type') || 'movie').toLowerCase()
   const [season, setSeason] = useState(1)
@@ -31,6 +34,11 @@ export default function WatchPage({ params }: { params: { id: string } }) {
   const [isAnime, setIsAnime] = useState(false)
   const [userInteracted, setUserInteracted] = useState(false)
   const [showBanner, setShowBanner] = useState(true)
+
+  // If user is not signed in, show the same component as home
+  if (!session?.user?.email) {
+    return <NotSignedIn />
+  }
 
   // Track presence when component mounts
   useEffect(() => {
@@ -164,20 +172,16 @@ export default function WatchPage({ params }: { params: { id: string } }) {
 
   // Track activity when show data changes
   useEffect(() => {
-    if (showData && showData.title && showData.poster_path) {
+    if (showData) {
       const showKey = `${showData.title}-${params.id}`
       
-      if (lastTrackedShow !== showKey) {
-        console.log('🎬 Calling trackActivity with TMDB data:', {
-          title: showData.title,
-          poster: `https://image.tmdb.org/t/p/w500${showData.poster_path}`,
-          showKey: showKey
-        })
+      try {
+        //console.log('🎬 Calling trackActivity with TMDB data: ', showData.poster_path)
         
-        trackActivity(showData.title, `https://image.tmdb.org/t/p/w500${showData.poster_path}`)
+        trackActivity(showData.name || showData.title, `https://image.tmdb.org/t/p/w500${showData.poster_path}`)
         setLastTrackedShow(showKey)
-      } else {
-        console.log('⏭️ Skipping duplicate activity tracking for:', showData.title)
+      } catch (error) {
+        console.log('I AHTE PEOPLE I HATE POEPL:', error)
       }
     }
   }, [showData, params.id, lastTrackedShow])

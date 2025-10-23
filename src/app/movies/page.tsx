@@ -1,65 +1,86 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import Link from 'next/link'
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { useSession } from "next-auth/react";
+import NotSignedIn from "@/components/NotSignedIn";
 
 interface Movie {
-  id: number
-  title: string
-  poster_path: string
-  overview: string
-  release_date: string
-  vote_average: number
-  genre_ids: number[]
+  id: number;
+  title: string;
+  poster_path: string;
+  overview: string;
+  release_date: string;
+  vote_average: number;
+  genre_ids: number[];
 }
 
 export default function MoviesPage() {
-  const [movies, setMovies] = useState<Movie[]>([])
-  const [loading, setLoading] = useState(true)
-  const [searchQuery, setSearchQuery] = useState('')
-  const [searchResults, setSearchResults] = useState<Movie[]>([])
+  const { data: session, status } = useSession();
+  const [movies, setMovies] = useState<Movie[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<Movie[]>([]);
 
   useEffect(() => {
-    loadPopularMovies()
-  }, [])
+    if (status === "authenticated") {
+      loadPopularMovies();
+    }
+  }, [status]);
 
   const loadPopularMovies = async () => {
-    setLoading(true)
+    setLoading(true);
     try {
-      const response = await fetch('/api/tmdb/popular?type=movie')
+      const response = await fetch("/api/tmdb/popular?type=movie");
       if (response.ok) {
-        const data = await response.json()
-        setMovies(data.results || [])
+        const data = await response.json();
+        setMovies(data.results || []);
       }
     } catch (error) {
-      console.error('Error loading movies:', error)
+      console.error("Error loading movies:", error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const handleSearch = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
     if (!searchQuery.trim()) {
-      setSearchResults([])
-      return
+      setSearchResults([]);
+      return;
     }
 
-    setLoading(true)
+    setLoading(true);
     try {
-      const response = await fetch(`/api/tmdb/search?q=${encodeURIComponent(searchQuery)}&type=movie`)
+      const response = await fetch(
+        `/api/tmdb/search?q=${encodeURIComponent(searchQuery)}&type=movie`
+      );
       if (response.ok) {
-        const data = await response.json()
-        setSearchResults(data.results || [])
+        const data = await response.json();
+        setSearchResults(data.results || []);
       }
     } catch (error) {
-      console.error('Error searching movies:', error)
+      console.error("Error searching movies:", error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
+  };
+
+  const displayMovies = searchResults.length > 0 ? searchResults : movies;
+
+  // 🔒 If user is not signed in
+  if (status === "unauthenticated") {
+    return <NotSignedIn />;
   }
 
-  const displayMovies = searchResults.length > 0 ? searchResults : movies
+  // ⏳ Loading session
+  if (status === "loading") {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-neutral-900 text-white">
+        Loading...
+      </div>
+    );
+  }
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-neutral-900 via-neutral-800 to-neutral-900">
@@ -85,7 +106,7 @@ export default function MoviesPage() {
               disabled={loading}
               className="px-6 py-3 bg-brand-600 hover:bg-brand-700 disabled:bg-neutral-700 text-white font-medium rounded-lg transition-colors"
             >
-              {loading ? 'Searching...' : 'Search'}
+              {loading ? "Searching..." : "Search"}
             </button>
           </form>
         </div>
@@ -105,7 +126,11 @@ export default function MoviesPage() {
               >
                 <div className="aspect-[3/4] relative overflow-hidden">
                   <img
-                    src={movie.poster_path ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` : '/placeholder.png'}
+                    src={
+                      movie.poster_path
+                        ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
+                        : "/placeholder.png"
+                    }
                     alt={movie.title}
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                   />
@@ -132,5 +157,5 @@ export default function MoviesPage() {
         )}
       </div>
     </main>
-  )
+  );
 }

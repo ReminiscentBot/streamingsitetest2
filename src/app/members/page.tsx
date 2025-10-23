@@ -4,7 +4,7 @@ import { PrismaClient } from '@prisma/client'
 import Link from 'next/link'
 import Image from 'next/image'
 import { formatLastActive, isCurrentlyActive, formatSearchTime } from '@/lib/timeUtils'
-
+import NotSignedIn from "@/components/NotSignedIn";
 
 const prisma = new PrismaClient()
 
@@ -132,6 +132,10 @@ async function getMembersStats() {
 export default async function MembersPage() {
   const session = await getServerSession(authOptions)
   const stats = await getMembersStats()
+
+  if (!session?.user?.email) {
+    return (<NotSignedIn />)
+  }
   
   console.log('📊 Members page stats:', {
     lastActiveUsers: stats.lastActiveUsers?.length || 0,

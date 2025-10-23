@@ -1,5 +1,9 @@
 import SearchBar from '@/components/SearchBar'
 import SectionGrid from '@/components/SectionGrid'
+import { NextRequest, NextResponse } from 'next/server'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
+import NotSignedIn from "@/components/NotSignedIn";
 
 async function fetchJson(path: string) {
   const base = process.env.NEXTAUTH_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000')
@@ -9,6 +13,11 @@ async function fetchJson(path: string) {
 }
 
 export default async function Home() {
+    const session = await getServerSession(authOptions)
+    if (!session?.user?.email) {
+      return (<NotSignedIn />)
+    }
+  
   const [trending, popularMovies, popularTv] = await Promise.all([
     fetchJson('/api/tmdb/trending'),
     fetchJson('/api/tmdb/popular?type=movie'),

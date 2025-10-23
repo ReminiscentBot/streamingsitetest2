@@ -19,6 +19,15 @@ import {
   faShield
 } from '@fortawesome/free-solid-svg-icons'
 
+interface AdminData {
+  isOwner: boolean
+  isDeveloper: boolean
+  isAdmin: boolean
+  isTrialMod: boolean
+  roles: string[]
+  uid: number
+}
+
 
 export default function Header() {
   const { data: session, status } = useSession()
@@ -27,6 +36,7 @@ export default function Header() {
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const [userUid, setUserUid] = useState<string | null>(null)
   const dropdownRef = useRef<HTMLDivElement>(null)
+  const [adminData, setAdminData] = useState<AdminData | null>(null)
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -55,8 +65,26 @@ export default function Header() {
     }
   }, [session])
 
+  useEffect(() => {
+    async function fetchAdminStatus() {
+      try {
+        const res = await fetch('/api/admin/check')
+        if (res.ok) {
+          const data = await res.json()
+          setAdminData(data)
+        }
+      } catch (error) {
+        console.error('Failed to fetch admin status:', error)
+      }
+    }
+
+    fetchAdminStatus()
+  }, [])
+
   // Check if we should hide the search bar
   const hideSearchBar = pathname === '/' || pathname === '/movies' || pathname === '/tv'
+
+  const adminCheck = adminData && (adminData.isAdmin || adminData.isDeveloper || adminData.isOwner || adminData.isTrialMod)
 
   return (
     <header className="sticky top-0 z-30 bg-neutral-900/70 backdrop-blur border-b border-neutral-800 min-h-[80px]">
@@ -243,7 +271,8 @@ export default function Header() {
                     <FontAwesomeIcon icon={faCog} className="w-4 h-4" />
                     Settings
                   </Link>
-                  
+
+                  {adminCheck && (
                   <Link 
                     href="/admin"
                     className="flex items-center gap-3 px-4 py-3 text-white hover:bg-neutral-800/50 transition-colors"
@@ -252,7 +281,7 @@ export default function Header() {
                     <FontAwesomeIcon icon={faShield} className="w-4 h-4" />
                     Admin Panel
                   </Link>
-                  
+                  )}        
                   <button
                     onClick={() => {
                       setDropdownOpen(false)
