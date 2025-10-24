@@ -7,6 +7,7 @@ import SettingsForm from './SettingsForm'
 import { ToastContainer } from '@/components/Toast'
 import { useToast } from '@/hooks/useToast'
 import NotSignedIn from '@/components/NotSignedIn'
+
 type SettingsTab = 'profile' | 'discord' | 'privacy' | 'notifications'
 
 export default function SettingsPage() {
@@ -20,7 +21,6 @@ export default function SettingsPage() {
     async function fetchUser() {
       if (status === 'authenticated' && session?.user?.email) {
         try {
-          // Get current user's UID first
           const adminRes = await fetch('/api/admin/check')
           if (adminRes.ok) {
             const adminData = await adminRes.json()
@@ -28,12 +28,8 @@ export default function SettingsPage() {
             if (res.ok) {
               const data = await res.json()
               setUser(data.user)
-            } else {
-              showError('Failed to load user data')
-            }
-          } else {
-            showError('Failed to load user data')
-          }
+            } else showError('Failed to load user data')
+          } else showError('Failed to load user data')
         } catch (error) {
           console.error('Error fetching user:', error)
           showError('Failed to load user data')
@@ -41,8 +37,7 @@ export default function SettingsPage() {
           setLoading(false)
         }
       } else if (status === 'unauthenticated') {
-          setLoading(false)
-          //return <NotSignedIn />
+        setLoading(false)
       }
     }
 
@@ -74,6 +69,31 @@ export default function SettingsPage() {
     { id: 'privacy', label: 'Privacy', icon: '🔒' },
     { id: 'notifications', label: 'Notifications', icon: '🔔' }
   ]
+
+  // Redirect to Discord OAuth
+  const handleLinkDiscord = () => {
+    window.location.href = '/api/discord/login' // <== change this to your Discord OAuth route
+  }
+
+  // Refresh Discord data
+  const handleRefreshDiscord = async () => {
+    try {
+      const res = await fetch('/api/discord/refresh', { method: 'POST' })
+      if (res.ok) {
+        showSuccess('Discord data refreshed successfully')
+        const userRes = await fetch('/api/profiles')
+        if (userRes.ok) {
+          const data = await userRes.json()
+          setUser(data.user)
+        }
+      } else {
+        showError('Failed to refresh Discord data')
+      }
+    } catch (error) {
+      console.error('Error refreshing Discord data:', error)
+      showError('Failed to refresh Discord data')
+    }
+  }
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-neutral-900 via-neutral-800 to-neutral-900">
@@ -109,6 +129,7 @@ export default function SettingsPage() {
           {/* Main Content */}
           <div className="lg:col-span-3">
             <div className="bg-neutral-900/50 backdrop-blur-sm rounded-xl border border-neutral-700/50 p-6">
+              {/* Profile */}
               {activeTab === 'profile' && (
                 <div>
                   <h2 className="text-2xl font-bold text-white mb-6">Profile Settings</h2>
@@ -116,10 +137,11 @@ export default function SettingsPage() {
                 </div>
               )}
 
+              {/* Discord */}
               {activeTab === 'discord' && (
                 <div>
                   <h2 className="text-2xl font-bold text-white mb-6">Discord Integration</h2>
-                  
+
                   {/* Profile Preview */}
                   <div className="mb-6">
                     <h3 className="text-lg font-semibold text-white mb-4">Current Discord Data</h3>
@@ -135,10 +157,12 @@ export default function SettingsPage() {
                         </div>
                         <div>
                           <div className="text-white font-medium">{user.name}</div>
-                          <div className="text-sm text-neutral-400">Discord ID: {user.discordId || 'Not connected'}</div>
+                          <div className="text-sm text-neutral-400">
+                            Discord ID: {user.discordId || 'Not connected'}
+                          </div>
                         </div>
                       </div>
-                      
+
                       {user.banner && user.discordId && (
                         <div className="relative h-24 w-full bg-gradient-to-r from-brand-800 to-brand-700 rounded-lg overflow-hidden">
                           <Image
@@ -153,48 +177,51 @@ export default function SettingsPage() {
                     </div>
                   </div>
 
+                  {/* Link or Refresh Button */}
                   <div className="space-y-4">
-                    <button
-                      onClick={async () => {
-                        try {
-                          const res = await fetch('/api/discord/refresh', { method: 'POST' })
-                          if (res.ok) {
-                            showSuccess('Discord data refreshed successfully')
-                            // Refresh user data
-                            const userRes = await fetch('/api/profiles')
-                            if (userRes.ok) {
-                              const data = await userRes.json()
-                              setUser(data.user)
-                            }
-                          } else {
-                            showError('Failed to refresh Discord data')
-                          }
-                        } catch (error) {
-                          console.error('Error refreshing Discord data:', error)
-                          showError('Failed to refresh Discord data')
-                        }
-                      }}
-                      className="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-lg transition-colors font-medium"
-                    >
-                      Refresh Discord Data
-                    </button>
-                    
+                    {user.discordId ? (
+                      <button
+                        onClick={handleRefreshDiscord}
+                        className="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-lg transition-colors font-medium"
+                      >
+                        Refresh Discord Data
+                      </button>
+                    ) : (
+                      <button
+                        onClick={handleLinkDiscord}
+                        className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors font-medium"
+                      >
+                        Link Discord Account
+                      </button>
+                    )}
+
                     <div className="text-sm text-neutral-400">
-                      <p>• Your Discord avatar and banner are automatically synced</p>
-                      <p>• Click "Refresh Discord Data" to update your information</p>
-                      <p>• Changes to your Discord profile will be reflected here</p>
+                      {user.discordId ? (
+                        <>
+                          <p>• Your Discord avatar and banner are automatically synced</p>
+                          <p>• Click "Refresh Discord Data" to update your information</p>
+                        </>
+                      ) : (
+                        <>
+                          <p>• Link your Discord to show your avatar and banner</p>
+                          <p>• Once linked, you can refresh your Discord data anytime</p>
+                        </>
+                      )}
                     </div>
                   </div>
                 </div>
               )}
 
+              {/* Privacy */}
               {activeTab === 'privacy' && (
                 <div>
                   <h2 className="text-2xl font-bold text-white mb-6">Privacy Settings</h2>
                   <div className="space-y-6">
                     <div className="bg-neutral-800/50 rounded-lg p-4">
                       <h3 className="text-lg font-semibold text-white mb-2">Profile Visibility</h3>
-                      <p className="text-neutral-400 text-sm mb-4">Control who can see your profile information</p>
+                      <p className="text-neutral-400 text-sm mb-4">
+                        Control who can see your profile information
+                      </p>
                       <div className="space-y-3">
                         <label className="flex items-center gap-3">
                           <input type="checkbox" className="rounded" defaultChecked />
@@ -214,13 +241,16 @@ export default function SettingsPage() {
                 </div>
               )}
 
+              {/* Notifications */}
               {activeTab === 'notifications' && (
                 <div>
                   <h2 className="text-2xl font-bold text-white mb-6">Notification Settings</h2>
                   <div className="space-y-6">
                     <div className="bg-neutral-800/50 rounded-lg p-4">
                       <h3 className="text-lg font-semibold text-white mb-2">Email Notifications</h3>
-                      <p className="text-neutral-400 text-sm mb-4">Choose what email notifications you want to receive</p>
+                      <p className="text-neutral-400 text-sm mb-4">
+                        Choose what email notifications you want to receive
+                      </p>
                       <div className="space-y-3">
                         <label className="flex items-center gap-3">
                           <input type="checkbox" className="rounded" defaultChecked />
@@ -244,7 +274,6 @@ export default function SettingsPage() {
         </div>
       </div>
 
-      {/* Toast Container */}
       <ToastContainer toasts={toasts} onRemove={removeToast} />
     </main>
   )
