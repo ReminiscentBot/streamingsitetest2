@@ -19,13 +19,13 @@ export default function NotSignedIn() {
         {/* Buttons */}
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <Link
-            href="/api/auth/signin"
+            href="/auth/signin"
             className="px-6 py-3 text-lg font-semibold text-white bg-brand-500 hover:bg-brand-600 rounded-lg transition-all duration-200"
           >
             Sign In
           </Link>
           <Link
-            href="/register"
+            href="/auth/register"
             className="px-6 py-3 text-lg font-semibold text-white bg-neutral-700 hover:bg-neutral-600 rounded-lg transition-all duration-200"
           >
             Create Account

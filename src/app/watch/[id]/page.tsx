@@ -14,7 +14,7 @@ import { useSession } from 'next-auth/react'
 import NotSignedIn from '@/components/NotSignedIn'
 
 export default function WatchPage({ params }: { params: { id: string } }) {
-    const { data: session, status } = useSession()
+  const { data: session, status } = useSession()
   const search = useSearchParams()
   const type = (search?.get('type') || 'movie').toLowerCase()
   const [season, setSeason] = useState(1)
@@ -36,7 +36,7 @@ export default function WatchPage({ params }: { params: { id: string } }) {
   const [showBanner, setShowBanner] = useState(true)
 
   // If user is not signed in, show the same component as home
-  if (!session?.user?.email) {
+  if (status === "unauthenticated") {
     return <NotSignedIn />
   }
 

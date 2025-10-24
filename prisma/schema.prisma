@@ -11,7 +11,8 @@ model User {
   id               String   @id @default(cuid())
   uid              Int      @unique
   email            String?  @unique
-  name             String?
+  password         String?
+  name             String?  @unique
   image            String?
   discordId        String?  @unique
   banner           String?
@@ -157,12 +158,12 @@ model Ban {
   @@index([ip])
 }
 
-model Invite {
+model Invites {
   id        String   @id @default(cuid())
   code      String   @unique
   issuerId  String?
-  uses      Int      @default(0)
-  maxUses   Int      @default(1)
+  enabled   Boolean  @default(true)
+  usedBy      Int      @default(0)
   createdAt DateTime @default(now())
 }
 

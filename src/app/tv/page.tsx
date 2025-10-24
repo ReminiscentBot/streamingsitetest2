@@ -32,7 +32,7 @@ export default function TVPage() {
   }
 
   // If user is not signed in, show the same component as home
-  if (!session?.user?.email) {
+  if (status === "unauthenticated") {
     return <NotSignedIn />
   }
 
