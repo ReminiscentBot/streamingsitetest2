@@ -3,6 +3,7 @@ import type { Metadata } from 'next'
 import Providers from './providers'
 import Header from '@/components/Header'
 import PresenceHeartbeat from '@/components/PresenceHeartbeat'
+import '@/lib/fontawesome'
 
 export const metadata: Metadata = {
   title: 'CacheTomb Streaming',
