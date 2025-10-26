@@ -3,13 +3,14 @@ import { PrismaClient } from '@prisma/client'
 const prisma = new PrismaClient()
 
 // Toggle invite
-export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const invite = await prisma.invites.findUnique({ where: { id: params.id } })
+    const { id } = await params
+    const invite = await prisma.invites.findUnique({ where: { id } })
     if (!invite) return NextResponse.json({ error: 'Invite not found' }, { status: 404 })
 
     const updated = await prisma.invites.update({
-      where: { id: params.id },
+      where: { id },
       data: { enabled: !invite.enabled }
     })
 
@@ -21,9 +22,10 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 }
 
 // DELETE invite
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    await prisma.invites.delete({ where: { id: params.id } })
+    const { id } = await params
+    await prisma.invites.delete({ where: { id } })
     return NextResponse.json({ success: true })
   } catch (err) {
     console.error(err)
