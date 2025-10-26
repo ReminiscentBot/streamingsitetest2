@@ -1,0 +1,108 @@
+﻿node.exe : prisma:engines binaries to download libquery-engine, schema-engine +133ms
+At line:1 char:1
++ & "C:\Program Files\nodejs/node.exe" "C:\Program Files\nodejs/node_mo ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (prisma:engines ...a-engine +133ms:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+prisma:loadEnv project root found at C:\Users\Izuru\OneDrive\Documents\streamingwesbitetest\package.json +211ms
+prisma:getSchema prismaConfig {
+  "packagePath": "C:\\Users\\Izuru\\OneDrive\\Documents\\streamingwesbitetest\\package.json"
+} +1ms
+prisma:tryLoadEnv Environment variables not found at null +0ms
+prisma:tryLoadEnv Environment variables not found at undefined +0ms
+prisma:tryLoadEnv No Environment variables loaded +0ms
+prisma:getSchema prismaConfig {
+  "packagePath": "C:\\Users\\Izuru\\OneDrive\\Documents\\streamingwesbitetest\\package.json"
+} +1ms
+prisma:getSchema Checking existence of C:\Users\Izuru\OneDrive\Documents\streamingwesbitetest\schema.prisma +0ms
+prisma:getSchema Reading schema from single file C:\Users\Izuru\OneDrive\Documents\streamingwesbitetest\schema.prisma 
++0ms
+prisma:getSchema Checking existence of C:\Users\Izuru\OneDrive\Documents\streamingwesbitetest\prisma\schema.prisma +0ms
+prisma:getSchema Reading schema from single file 
+C:\Users\Izuru\OneDrive\Documents\streamingwesbitetest\prisma\schema.prisma +0ms
+prisma:getSchema Reading schema from multiple files 
+C:\Users\Izuru\OneDrive\Documents\streamingwesbitetest\prisma\schema +1ms
+Prisma schema loaded from prisma\schema.prisma
+prisma:getConfig Using getConfig Wasm +0ms
+prisma:getConfig config data retrieved without errors in getConfig Wasm +7ms
+prisma:getSchema Reading schema from single file 
+C:\Users\Izuru\OneDrive\Documents\streamingwesbitetest\prisma\schema.prisma +0ms
+prisma:getConfig Using getConfig Wasm +39ms
+prisma:getConfig config data retrieved without errors in getConfig Wasm +0ms
+prisma:getDMMF Using getDmmf Wasm +1ms
+prisma:getDMMF Using given datamodel +0ms
+prisma:getDMMF dmmf data retrieved without errors in getDmmf Wasm +17ms
+prisma:generator prismaCLIDir C:\Users\Izuru\OneDrive\Documents\streamingwesbitetest\node_modules\prisma +2ms
+prisma:generator prismaClientDir C:\Users\Izuru\OneDrive\Documents\streamingwesbitetest\node_modules\@prisma\client 
++0ms
+prisma:generator baseDir C:\Users\Izuru\OneDrive\Documents\streamingwesbitetest\prisma +0ms
+prisma:generator typescriptPath C:\Users\Izuru\OneDrive\Documents\streamingwesbitetest\node_modules\typescript +2ms
+prisma:GeneratorProcess prisma:client:generator requiredEngine: libqueryEngine +12ms +64ms
+prisma:mergeSchemas Using mergeSchemas Wasm +0ms
+prisma:loadEnv project root found at 
+C:\Users\Izuru\OneDrive\Documents\streamingwesbitetest\node_modules\@prisma\client\package.json +1ms
+prisma:getSchema prismaConfig {
+  "packagePath": "C:\\Users\\Izuru\\OneDrive\\Documents\\streamingwesbitetest\\package.json"
+} +1ms
+prisma:getGenerators neededVersions {
+  "605197351a3c8bdd595af2d2a9bc3025bca48ea2": {
+    "engines": [
+      "libqueryEngine"
+    ],
+    "binaryTargets": [
+      {
+        "fromEnvVar": null,
+        "value": "windows",
+        "native": true
+      }
+    ]
+  }
+} +0ms
+prisma:getGenerators {
+  "generatorBinaryPaths": {
+    "libqueryEngine": {
+      "windows": 
+"C:\\Users\\Izuru\\OneDrive\\Documents\\streamingwesbitetest\\node_modules\\prisma\\query_engine-windows.dll.node"
+    }
+  }
+} +39ms
+prisma:tryLoadEnv Environment variables not found at null +4ms
+prisma:tryLoadEnv Environment variables not found at undefined +0ms
+prisma:tryLoadEnv No Environment variables loaded +0ms
+prisma:cli:bin Execution time for executing "await cli.parse(commandArray)": 298.3794 ms +46ms
+
+Γ£ö Generated Prisma Client (v5.22.0) to .\node_modules\@prisma\client in 33ms
+
+Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
+
+Tip: Easily identify and fix slow SQL queries in your app. Optimize helps you enhance your visibility: https://pris.ly/--optimize
+
+prisma:GeneratorProcess child exited with code null on signal SIGTERM +1ms
+prisma:getSchema prismaConfig {
+  "packagePath": "C:\\Users\\Izuru\\OneDrive\\Documents\\streamingwesbitetest\\package.json"
+} +1ms
+prisma:getSchema Checking existence of C:\Users\Izuru\OneDrive\Documents\streamingwesbitetest\schema.prisma +0ms
+prisma:getSchema Reading schema from single file C:\Users\Izuru\OneDrive\Documents\streamingwesbitetest\schema.prisma 
++0ms
+prisma:getSchema prismaConfig {
+  "packagePath": "C:\\Users\\Izuru\\OneDrive\\Documents\\streamingwesbitetest\\package.json"
+} +0ms
+prisma:getSchema Checking existence of C:\Users\Izuru\OneDrive\Documents\streamingwesbitetest\schema.prisma +0ms
+prisma:getSchema Reading schema from single file C:\Users\Izuru\OneDrive\Documents\streamingwesbitetest\schema.prisma 
++0ms
+prisma:getSchema Checking existence of C:\Users\Izuru\OneDrive\Documents\streamingwesbitetest\prisma\schema.prisma +0ms
+prisma:getSchema Reading schema from single file 
+C:\Users\Izuru\OneDrive\Documents\streamingwesbitetest\prisma\schema.prisma +0ms
+prisma:getSchema Checking existence of C:\Users\Izuru\OneDrive\Documents\streamingwesbitetest\prisma\schema.prisma +0ms
+prisma:getSchema Reading schema from single file 
+C:\Users\Izuru\OneDrive\Documents\streamingwesbitetest\prisma\schema.prisma +0ms
+prisma:getSchema Reading schema from multiple files 
+C:\Users\Izuru\OneDrive\Documents\streamingwesbitetest\prisma\schema +0ms
+prisma:getSchema Reading schema from multiple files 
+C:\Users\Izuru\OneDrive\Documents\streamingwesbitetest\prisma\schema +0ms
+prisma:getConfig Using getConfig Wasm +0ms
+prisma:getConfig config data retrieved without errors in getConfig Wasm +1ms
+prisma:cli:checkpoint runCheckpointClientCheck(): Execution time for getting info: 2.5072999999999865 ms +0ms
+prisma:cli:checkpoint runCheckpointClientCheck(): Execution time for "await checkpoint.check(data)": 
+15.504799999999989 ms +15ms

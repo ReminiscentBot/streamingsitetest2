@@ -1,0 +1,41 @@
+﻿node.exe : prisma:engines binaries to download libquery-engine, schema-engine +130ms
+At line:1 char:1
++ & "C:\Program Files\nodejs/node.exe" "C:\Program Files\nodejs/node_mo ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (prisma:engines ...a-engine +130ms:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+prisma:loadEnv project root found at C:\Users\Izuru\OneDrive\Documents\streamingwesbitetest\package.json +207ms
+prisma:getSchema prismaConfig {
+  "packagePath": "C:\\Users\\Izuru\\OneDrive\\Documents\\streamingwesbitetest\\package.json"
+} +1ms
+prisma:tryLoadEnv Environment variables not found at null +1ms
+prisma:tryLoadEnv Environment variables not found at undefined +0ms
+prisma:tryLoadEnv No Environment variables loaded +0ms
+prisma:getSchema prismaConfig {
+  "packagePath": "C:\\Users\\Izuru\\OneDrive\\Documents\\streamingwesbitetest\\package.json"
+} +0ms
+prisma:getSchema Checking existence of C:\Users\Izuru\OneDrive\Documents\streamingwesbitetest\schema.prisma +0ms
+prisma:getSchema Reading schema from single file C:\Users\Izuru\OneDrive\Documents\streamingwesbitetest\schema.prisma 
++0ms
+prisma:getSchema Checking existence of C:\Users\Izuru\OneDrive\Documents\streamingwesbitetest\prisma\schema.prisma +1ms
+prisma:getSchema Reading schema from single file 
+C:\Users\Izuru\OneDrive\Documents\streamingwesbitetest\prisma\schema.prisma +0ms
+prisma:getSchema Reading schema from multiple files 
+C:\Users\Izuru\OneDrive\Documents\streamingwesbitetest\prisma\schema +0ms
+Prisma schema loaded from prisma\schema.prisma
+prisma:validate Using validate Wasm +12ms
+prisma:getConfig Using getConfig Wasm +1ms
+Error: Prisma schema validation - (get-config wasm)
+Error code: P1012
+error: Environment variable not found: DATABASE_URL.
+  -->  prisma\schema.prisma:7
+   | 
+ 6 |   provider = "postgresql"
+ 7 |   url      = env("DATABASE_URL")
+   | 
+
+Validation Error Count: 1
+[Context: getConfig]
+
+Prisma CLI Version : 5.22.0
